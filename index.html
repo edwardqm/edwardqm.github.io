@@ -1,0 +1,2735 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a237e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Registro Vehicular">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Registro Vehicular - Control de Acceso</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--primary:#1a237e;--primary-light:#3949ab;--accent:#ff6f00;--danger:#c62828;--success:#2e7d32;--warning:#f9a825;--bg:#f5f5f5;--card:#fff;--text:#212121;--border:#e0e0e0}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
+body{background:var(--bg);color:var(--text);line-height:1.6}
+.container{max-width:900px;margin:0 auto;padding:15px;padding-bottom:100px}
+
+/* HEADER LIMPIO */
+header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);color:#fff;padding:25px 20px;text-align:center;border-radius:0 0 20px 20px;margin-bottom:0;box-shadow:0 4px 15px rgba(0,0,0,0.2);position:sticky;top:0;z-index:100}
+header h1{font-size:1.4rem;margin-bottom:5px;font-weight:800}
+header p{opacity:0.9;font-size:0.85rem}
+
+/* BOTÓN CERRAR APLICACIÓN - DEBAJO DEL HEADER */
+.app-close-bar{text-align:center;padding:14px 0 6px}
+.btn-cerrar-app{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.5px solid var(--primary-light);color:var(--primary);padding:8px 18px;border-radius:50px;font-size:0.82rem;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(26,35,126,0.12);transition:all 0.2s ease}
+.btn-cerrar-app:active{background:var(--primary-light);color:#fff;transform:scale(0.96)}
+.btn-cerrar-app .icon-cerrar{font-size:1rem}
+
+.card{background:var(--card);border-radius:12px;padding:18px;margin-bottom:15px;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.card-title{font-size:1rem;color:var(--primary);font-weight:700;margin-bottom:15px;display:flex;align-items:center;gap:8px;border-bottom:2px solid var(--border);padding-bottom:10px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-group{margin-bottom:14px}
+label{display:block;font-weight:600;margin-bottom:6px;font-size:0.9rem;color:#444}
+input,select,textarea{width:100%;padding:14px;border:2px solid var(--border);border-radius:10px;font-size:1rem;background:#fff}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary-light);box-shadow:0 0 0 3px rgba(57,73,171,0.15)}
+textarea{resize:vertical;min-height:90px}
+.radio-group{display:flex;gap:12px;flex-wrap:wrap}
+.radio-option{flex:1;min-width:80px}
+.radio-option input[type="radio"]{display:none}
+.radio-option label{display:block;text-align:center;padding:14px 10px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-weight:700;font-size:0.95rem;user-select:none}
+.radio-option input[type="radio"]:checked+label{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 4px 12px rgba(26,35,126,0.25)}
+.hidden{display:none!important}
+.conditional-box{background:linear-gradient(135deg,#e8eaf6 0%,#c5cae9 100%);border-left:4px solid var(--primary);padding:15px;border-radius:0 10px 10px 0;margin-top:12px}
+.file-input-wrapper{position:relative;overflow:hidden;display:inline-block;width:100%}
+.file-input-wrapper input[type=file]{position:absolute;left:-9999px}
+.file-input-label{display:block;padding:16px;background:#fff;border:2px dashed var(--primary-light);border-radius:10px;text-align:center;cursor:pointer;color:var(--primary);font-weight:700;font-size:0.95rem}
+.file-input-label.has-file{background:#e8f5e9;border-color:var(--success);border-style:solid;color:var(--success)}
+.file-input-label .camera-icon{font-size:1.5rem;display:block;margin-bottom:5px}
+.preview-img{max-width:100%;max-height:160px;border-radius:10px;margin-top:10px;border:2px solid var(--border);display:block;margin-left:auto;margin-right:auto}
+.btn{padding:16px 24px;border:none;border-radius:10px;font-size:1rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:8px;justify-content:center;touch-action:manipulation}
+.btn-primary{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);color:#fff;box-shadow:0 4px 12px rgba(26,35,126,0.25)}
+.btn-success{background:linear-gradient(135deg,var(--success) 0%,#43a047 100%);color:#fff}
+.btn-danger{background:linear-gradient(135deg,var(--danger) 0%,#e53935 100%);color:#fff}
+.btn-accent{background:linear-gradient(135deg,var(--accent) 0%,#ff8f00 100%);color:#fff}
+.btn-warning{background:linear-gradient(135deg,var(--warning) 0%,#fbc02d 100%);color:#333}
+.btn-group{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.table-container{overflow-x:auto;margin-top:15px;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:0.82rem}
+th,td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+th{background:var(--primary);color:#fff;font-weight:600;position:sticky;top:0;font-size:0.78rem;text-transform:uppercase}
+tr{cursor:pointer;transition:background 0.15s}
+tr:hover{background:#f5f5f5}
+.badge{padding:4px 10px;border-radius:20px;font-size:0.7rem;font-weight:800;text-transform:uppercase}
+.badge-ingreso{background:#e8f5e9;color:var(--success);border:1px solid #a5d6a7}
+.badge-salida{background:#fff3e0;color:#e65100;border:1px solid #ffcc80}
+.search-box{display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap}
+.search-box input{flex:1;min-width:180px}
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);display:none;justify-content:center;align-items:center;z-index:1000;backdrop-filter:blur(5px)}
+.modal-overlay.active{display:flex}
+.modal{background:#fff;padding:30px;border-radius:16px;max-width:400px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+.modal h3{margin-bottom:15px;color:var(--primary);font-size:1.2rem}
+.modal input{margin-bottom:15px;text-align:center;font-size:1.4rem;letter-spacing:6px;font-weight:700;padding:14px;border:2px solid var(--border);border-radius:10px;width:100%;transition:border-color 0.2s,background 0.2s}
+@keyframes shakeClave{0%,100%{transform:translateX(0)}15%{transform:translateX(-8px)}30%{transform:translateX(8px)}45%{transform:translateX(-6px)}60%{transform:translateX(6px)}75%{transform:translateX(-4px)}90%{transform:translateX(4px)}}
+@keyframes highlightFila{0%{background:#fff3cd}50%{background:#ffe082}100%{background:#fff3cd}}
+#formCard.edit-mode{border:2px solid #ff6f00!important;box-shadow:0 4px 20px rgba(255,111,0,0.25)!important}
+.footer{text-align:center;padding:25px 20px;color:#777;font-size:0.85rem;border-top:1px solid var(--border);margin-top:20px;background:#fff;border-radius:20px 20px 0 0}
+.footer strong{color:var(--primary)}
+.empty-state{text-align:center;padding:40px;color:#999;font-size:1rem}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:15px}
+.stat-card{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);color:#fff;padding:18px 10px;border-radius:12px;text-align:center;box-shadow:0 4px 12px rgba(26,35,126,0.2)}
+.stat-card h3{font-size:1.8rem;margin-bottom:4px;font-weight:800}
+.stat-card p{font-size:0.8rem;opacity:0.9;font-weight:500}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:#333;color:#fff;padding:16px 28px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.3);transition:transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275);z-index:999;font-weight:600;font-size:0.95rem;max-width:90%;text-align:center}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.btn-del-foto{display:inline-flex;align-items:center;gap:5px;background:#c62828;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:0.82rem;font-weight:700;cursor:pointer;margin-top:7px}
+.btn-del-foto:active{background:#b71c1c}
+.img-thumb{width:48px;height:48px;object-fit:cover;border-radius:6px;cursor:pointer;border:2px solid var(--border)}
+.img-viewer{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);display:none;justify-content:center;align-items:center;z-index:2000}
+.img-viewer.active{display:flex}
+.img-viewer img{max-width:92%;max-height:92%;border-radius:8px}
+.img-viewer .close-viewer{position:absolute;top:15px;right:20px;color:#fff;font-size:2.5rem;cursor:pointer;width:50px;height:50px;display:flex;align-items:center;justify-content:center}
+.section-divider{height:1px;background:var(--border);margin:20px 0}
+.info-text{font-size:0.8rem;color:#666;margin-top:4px;font-style:italic}
+
+/* CHECKBOX SIN PLACA */
+.sin-placa-check{display:flex;align-items:center;gap:10px;padding:12px 14px;background:linear-gradient(135deg,#fff3e0 0%,#ffe0b2 100%);border:2px solid #ff9800;border-radius:10px;margin-bottom:14px;cursor:pointer}
+.sin-placa-check input[type="checkbox"]{width:22px;height:22px;accent-color:#ff6f00;cursor:pointer}
+.sin-placa-check label{font-weight:700;color:#e65100;font-size:0.95rem;cursor:pointer;margin:0}
+
+/* DETALLE FULLSCREEN */
+.detail-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:#fff;z-index:3000;display:none;flex-direction:column;overflow-y:auto}
+.detail-overlay.active{display:flex}
+.detail-header{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);color:#fff;padding:18px 20px;position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 10px rgba(0,0,0,0.2)}
+.detail-header h2{font-size:1.25rem;margin:0}
+.detail-header .btn-close-detail{background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:#fff;width:40px;height:40px;border-radius:50%;font-size:1.3rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.detail-header .btn-close-detail:active{background:rgba(255,255,255,0.35)}
+.detail-body{padding:20px;max-width:900px;margin:0 auto;width:100%}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.detail-item{margin-bottom:6px}
+.detail-label{font-size:0.75rem;color:#666;font-weight:700;text-transform:uppercase;margin-bottom:4px;letter-spacing:0.5px}
+.detail-value{font-size:1.05rem;color:var(--text);font-weight:600;word-break:break-word}
+.detail-section-title{font-size:1rem;color:var(--primary);font-weight:700;margin:24px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--border)}
+.detail-badge-ingreso{display:inline-block;background:#e8f5e9;color:var(--success);border:1px solid #a5d6a7;padding:6px 14px;border-radius:20px;font-size:0.85rem;font-weight:800}
+.detail-badge-salida{display:inline-block;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;padding:6px 14px;border-radius:20px;font-size:0.85rem;font-weight:800}
+.detail-photos{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
+.detail-photo{max-width:100%;max-height:220px;border-radius:10px;border:2px solid var(--border);cursor:pointer;object-fit:cover}
+.detail-photo.pdf-thumb{width:100px;height:100px;object-fit:contain;background:#ffebee;padding:10px}
+
+@media(max-width:768px){
+  .grid-2{grid-template-columns:1fr}
+  .btn-group{flex-direction:column}
+  .btn{width:100%;padding:16px}
+  header h1{font-size:1.15rem}
+  .stats{grid-template-columns:1fr}
+  .search-box{flex-direction:column}
+  .search-box input{min-width:100%}
+  .detail-grid{grid-template-columns:1fr}
+}
+@media(max-width:400px){
+  .container{padding:10px}
+  .card{padding:14px}
+  header{padding:20px 15px}
+  header h1{font-size:1.05rem}
+  .btn-cerrar-app{font-size:0.75rem;padding:6px 14px}
+}
+
+/* ===== SISTEMA DE PESTAÑAS ===== */
+.tabs-nav{display:flex;gap:4px;padding:12px 15px 0;background:var(--bg);position:sticky;top:0;z-index:99;max-width:900px;margin:0 auto}
+.tab-btn{flex:1;padding:14px 8px;border:none;border-radius:12px 12px 0 0;background:#e8eaf6;color:var(--primary);font-weight:700;font-size:0.9rem;cursor:pointer;transition:all .2s;text-align:center;position:relative;bottom:-1px}
+.tab-btn.active{background:var(--card);color:var(--primary);box-shadow:0 -2px 8px rgba(0,0,0,0.06);border-bottom:3px solid var(--accent)}
+.tab-btn .tab-icon{font-size:1.1rem;display:block;margin-bottom:3px}
+.tab-panel{display:none;animation:fadeIn .3s ease}
+.tab-panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:768px){
+  .tab-btn{font-size:0.78rem;padding:12px 4px}
+  .tab-btn .tab-icon{font-size:1rem}
+}
+
+</style>
+</head>
+<body>
+<header>
+  <h1>🚗 REGISTRO VEHICULAR</h1>
+  <p>Control de Ingreso y Salida de Vehiculos</p>
+  <div id="googleAuthBar" style="margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;">
+    <button id="btnGoogleLogin" onclick="iniciarLoginGoogle()" style="background:#fff;color:#3c4043;border:1px solid #dadce0;border-radius:6px;padding:8px 14px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;cursor:pointer;">
+      <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20.5H24v7h11.3C33.7 31.7 29.3 35 24 35c-6.1 0-11-4.9-11-11s4.9-11 11-11c2.8 0 5.3 1 7.3 2.7l5.2-5.2C33.1 7.8 28.8 6 24 6 14.6 6 7 13.6 7 23s7.6 17 17 17c9.4 0 16.5-6.8 16.5-17 0-1.1-.1-2.3-.3-3.5z"/><path fill="#FF3D00" d="M9.5 14.6l5.8 4.2C16.9 15.9 20.2 13 24 13c2.8 0 5.3 1 7.3 2.7l5.2-5.2C33.1 7.8 28.8 6 24 6c-6.6 0-12.2 3.8-15 9.3z"/><path fill="#4CAF50" d="M24 40c5.2 0 9.9-1.9 13.4-5.2l-6.2-5.1C29.2 31.4 26.7 32 24 32c-5.3 0-9.7-3.3-11.3-8l-6.5 5C9.6 36.1 16.2 40 24 40z"/><path fill="#1976D2" d="M43.6 20.5H42V20.5H24v7h11.3c-.8 2.4-2.4 4.4-4.4 5.7l6.2 5.1C40.5 35.4 43 30 43 23c0-1.1-.1-2.3-.3-3.5z"/></svg>
+      Iniciar sesión con Google
+    </button>
+    <div id="googleUserInfo" style="display:none;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:6px 12px;border-radius:20px;font-size:12px;color:#fff;">
+      <img id="googleUserPhoto" src="" style="width:22px;height:22px;border-radius:50%;">
+      <span id="googleUserName"></span>
+      <span id="syncStatus" title="Estado de sincronización">☁️</span>
+      <button onclick="cerrarSesionGoogle()" style="background:none;border:none;color:#fff;cursor:pointer;font-size:12px;text-decoration:underline;">Salir</button>
+    </div>
+  </div>
+</header>
+
+<div class="tabs-nav">
+  <button class="tab-btn active" onclick="switchTab('tab-form', this)">
+    <span class="tab-icon">📝</span>Registro
+  </button>
+  <button class="tab-btn" onclick="switchTab('tab-history', this)">
+    <span class="tab-icon">📋</span>Historial
+  </button>
+  <button class="tab-btn" onclick="switchTab('tab-dashboard', this)">
+    <span class="tab-icon">📊</span>Dashboard
+  </button>
+  <button class="tab-btn" onclick="switchTab('tab-respaldo', this)">
+    <span class="tab-icon">💾</span>Respaldo
+  </button>
+</div>
+<div class="container">
+
+<!-- ===== PESTAÑA 1: REGISTRO ===== -->
+<div class="tab-panel active" id="tab-form">
+<div class="card" id="formCard">
+<div class="card-title" id="cardTitle">📝 Nuevo Registro</div>
+<div id="editBanner" style="display:none;background:linear-gradient(135deg,#ff6f00,#ff8f00);color:#fff;border-radius:10px;padding:14px 18px;margin-bottom:18px;font-weight:700;font-size:0.95rem;align-items:center;gap:10px">
+  <span style="font-size:1.4rem">✏️</span>
+  <div>
+    <div style="font-size:1rem">MODO EDICION ACTIVO</div>
+    <div id="editBannerSub" style="font-size:0.8rem;opacity:0.9;font-weight:500;margin-top:2px">Modifique los campos y presione ACTUALIZAR REGISTRO</div>
+  </div>
+</div>
+<form id="registroForm">
+<input type="hidden" id="editId" value="">
+<div class="grid-2">
+<div class="form-group"><label>Fecha</label><input type="date" id="fecha" required></div>
+<div class="form-group"><label>Hora</label><input type="time" id="hora" required></div>
+</div>
+<div class="form-group">
+<label>Tipo de Movimiento</label>
+<div class="radio-group">
+<div class="radio-option"><input type="radio" name="tipo" id="tipoIngreso" value="INGRESO" required><label for="tipoIngreso">📥 INGRESO</label></div>
+<div class="radio-option"><input type="radio" name="tipo" id="tipoSalida" value="SALIDA" required><label for="tipoSalida">📤 SALIDA</label></div>
+</div>
+</div>
+
+<!-- 🔧 NUEVO: Checkbox sin placa -->
+<div class="sin-placa-check" id="sinPlacaCheck">
+  <input type="checkbox" id="sinPlaca" value="SI">
+  <label for="sinPlaca">🚫 VEHICULO SIN PLACA</label>
+</div>
+
+<div id="placasContainer">
+<div class="grid-2">
+<div class="form-group"><label>Placa del Vehiculo</label><input type="text" id="placa" list="listaPlacas" placeholder="ABC-1234" maxlength="8" required><div class="info-text">Formato automatico: 3 letras + guion + numeros</div><datalist id="listaPlacas"></datalist></div>
+<div class="form-group"><label>¿Tiene Segunda Placa?</label>
+<div class="radio-group">
+<div class="radio-option"><input type="radio" name="segundaPlaca" id="segPlacaSi" value="SI"><label for="segPlacaSi">✅ SI</label></div>
+<div class="radio-option"><input type="radio" name="segundaPlaca" id="segPlacaNo" value="NO" checked><label for="segPlacaNo">❌ NO</label></div>
+</div>
+</div>
+</div>
+<div id="segundaPlacaBox" class="conditional-box hidden">
+<div class="form-group"><label>Segunda Placa</label><input type="text" id="placa2" list="listaPlacas2" placeholder="ABC-1234" maxlength="8"><div class="info-text">Formato automatico: 3 letras + guion + numeros</div><datalist id="listaPlacas2"></datalist></div>
+</div>
+</div>
+
+<div class="form-group">
+<label>Tipo de Vehiculo</label>
+<select id="tipoVehiculo" required>
+<option value="" disabled selected>SELECCIONE...</option>
+<option value="MOTO">MOTO</option>
+<option value="TRIMOTO">TRIMOTO</option>
+<option value="CUATRIMOTO">CUATRIMOTO</option>
+<option value="AUTO">AUTO</option>
+<option value="CAMIONETA">CAMIONETA</option>
+<option value="COMBI O VAN">COMBI O VAN</option>
+<option value="BUS">BUS</option>
+<option value="FURGON">FURGON</option>
+<option value="CAMION">CAMION</option>
+<option value="CAMION CISTERNA">CAMION CISTERNA</option>
+<option value="GRANELERO">GRANELERO</option>
+<option value="TRAYLER">TRAYLER</option>
+</select>
+</div>
+
+<div class="grid-2">
+<div class="form-group"><label>Nombre del Conductor</label><input type="text" id="conductor" list="listaConductores" placeholder="NOMBRE COMPLETO" required><datalist id="listaConductores"></datalist></div>
+<div class="form-group"><label>Empresa</label><input type="text" id="empresa" list="listaEmpresas" placeholder="EMPRESA" required><datalist id="listaEmpresas"></datalist></div>
+</div>
+<div class="form-group" id="procedenciaDestinoGroup"><label id="lblProcedenciaDestino">Procedencia / Destino</label><input type="text" id="procedenciaDestino" list="listaLugares" placeholder="LUGAR" required><datalist id="listaLugares"></datalist></div>
+
+<div class="section-divider"></div>
+
+<div class="form-group"><label id="lblMateriales">¿Trae Materiales?</label>
+<div class="radio-group">
+<div class="radio-option"><input type="radio" name="materiales" id="matSi" value="SI"><label for="matSi">✅ SI</label></div>
+<div class="radio-option"><input type="radio" name="materiales" id="matNo" value="NO" checked><label for="matNo">❌ NO</label></div>
+</div>
+</div>
+<div id="materialesBox" class="conditional-box hidden">
+<div class="form-group"><label>Descripcion de Materiales</label><textarea id="descMateriales" placeholder="DESCRIBA LOS MATERIALES QUE TRAE/LEVA..."></textarea><div class="info-text">Obligatorio cuando no hay precintos o guia</div></div>
+<div class="form-group"><label id="lblPrecintos">¿Viene con Precintos?</label>
+<div class="radio-group">
+<div class="radio-option"><input type="radio" name="precintos" id="precSi" value="SI"><label for="precSi">✅ SI</label></div>
+<div class="radio-option"><input type="radio" name="precintos" id="precNo" value="NO" checked><label for="precNo">❌ NO</label></div>
+</div>
+</div>
+<div id="precintosBox" class="hidden">
+<div class="grid-2">
+<div class="form-group"><label>Foto Precinto 1</label><div class="file-input-wrapper"><input type="file" id="fotoPrecinto1" accept="image/*"><label for="fotoPrecinto1" class="file-input-label" id="lblPrecinto1"><span class="camera-icon">📷</span>TOMAR FOTO O ELEGIR DE GALERIA</label></div><img id="previewPrecinto1" class="preview-img hidden"><button type="button" id="btnDelPrecinto1" class="btn-del-foto hidden" onclick="borrarFoto('fotoPrecinto1','previewPrecinto1','lblPrecinto1','btnDelPrecinto1','📷','TOMAR FOTO O ELEGIR DE GALERIA')">🗑️ BORRAR FOTO</button></div>
+<div class="form-group"><label>Foto Precinto 2</label><div class="file-input-wrapper"><input type="file" id="fotoPrecinto2" accept="image/*"><label for="fotoPrecinto2" class="file-input-label" id="lblPrecinto2"><span class="camera-icon">📷</span>TOMAR FOTO O ELEGIR DE GALERIA</label></div><img id="previewPrecinto2" class="preview-img hidden"><button type="button" id="btnDelPrecinto2" class="btn-del-foto hidden" onclick="borrarFoto('fotoPrecinto2','previewPrecinto2','lblPrecinto2','btnDelPrecinto2','📷','TOMAR FOTO O ELEGIR DE GALERIA')">🗑️ BORRAR FOTO</button></div>
+</div>
+</div>
+<div class="form-group"><label id="lblGuia">¿Viene con Guia?</label>
+<div class="radio-group">
+<div class="radio-option"><input type="radio" name="guia" id="guiaSi" value="SI"><label for="guiaSi">✅ SI</label></div>
+<div class="radio-option"><input type="radio" name="guia" id="guiaNo" value="NO" checked><label for="guiaNo">❌ NO</label></div>
+</div>
+</div>
+<div id="guiaBox" class="hidden">
+<div class="form-group"><label>Guia Escaneada / Adjuntada</label><div class="info-text" style="margin-bottom:8px">💡 Use apps como <strong>CamScanner, Adobe Scan, Fotoscan</strong> o su escaner nativo, luego adjunte el archivo PDF o imagen aqui. Tambien puede elegir de la galeria.</div><div class="file-input-wrapper"><input type="file" id="fotoGuia" accept="application/pdf,image/*"><label for="fotoGuia" class="file-input-label" id="lblGuiaFoto"><span class="camera-icon">📄</span>ESCANEAR / ADJUNTAR GUIA O ELEGIR DE GALERIA</label></div><img id="previewGuia" class="preview-img hidden"><button type="button" id="btnDelGuia" class="btn-del-foto hidden" onclick="borrarFoto('fotoGuia','previewGuia','lblGuiaFoto','btnDelGuia','📄','ESCANEAR / ADJUNTAR GUIA O ELEGIR DE GALERIA')">🗑️ BORRAR GUIA</button></div>
+</div>
+</div>
+
+<div class="section-divider"></div>
+
+<div class="form-group"><label id="lblAcompanantes">¿Viene con Acompanantes?</label>
+<div class="radio-group">
+<div class="radio-option"><input type="radio" name="acompanantes" id="acompSi" value="SI"><label for="acompSi">✅ SI</label></div>
+<div class="radio-option"><input type="radio" name="acompanantes" id="acompNo" value="NO" checked><label for="acompNo">❌ NO</label></div>
+</div>
+</div>
+<div id="acompanantesBox" class="conditional-box hidden">
+<div class="form-group"><label>Registro de Personas Acompanantes</label><textarea id="personasAcompanantes" placeholder="NOMBRE 1, NOMBRE 2, ... (UNO POR LINEA O SEPARADOS POR COMAS)"></textarea></div>
+</div>
+
+<div class="section-divider"></div>
+
+<div class="form-group"><label>Observaciones</label><textarea id="observaciones" placeholder="OBSERVACIONES ADICIONALES..."></textarea></div>
+<div class="btn-group">
+<button type="submit" class="btn btn-primary" id="btnGuardar"><span>💾</span> GUARDAR REGISTRO</button>
+<button type="button" class="btn btn-accent" id="btnCancelar" style="display:none" onclick="limpiarFormulario()"><span>❌</span> CANCELAR EDICION</button>
+</div>
+</form>
+</div>
+
+
+</div>
+
+<!-- ===== PESTAÑA 2: HISTORIAL ===== -->
+<div class="tab-panel" id="tab-history">
+<div class="card">
+<div class="card-title">🔍 Busqueda y Filtros</div>
+<div class="search-box">
+<input type="text" id="searchPlaca" placeholder="🔍 Buscar por PLACA..." oninput="filtrarRegistros()">
+<input type="text" id="searchConductor" placeholder="🔍 Buscar por CONDUCTOR..." oninput="filtrarRegistros()">
+<input type="date" id="searchFecha" onchange="filtrarRegistros()">
+<button type="button" class="btn btn-warning" onclick="limpiarFiltros()"><span>🧹</span> LIMPIAR</button>
+</div>
+</div>
+
+<div class="card">
+<div class="card-title">📋 Registros Guardados</div>
+<div class="btn-group" style="margin-bottom:20px">
+<button type="button" class="btn btn-success" onclick="exportarExcel()"><span>📊</span> EXPORTAR EXCEL</button>
+<button type="button" class="btn btn-danger" onclick="exportarPDF()"><span>📄</span> EXPORTAR PDF</button>
+</div>
+<div class="table-container">
+<table id="tablaRegistros">
+<thead><tr><th>#</th><th>Fecha</th><th>Hora</th><th>Tipo</th><th>Placa</th><th>Placa 2</th><th>Tipo Veh.</th><th>Conductor</th><th>Empresa</th><th>Proc/Dest</th><th>Mat.</th><th>Desc.Mat.</th><th>Prec.</th><th>Guia</th><th>Acomp.</th><th>Fotos</th><th>Accion</th></tr></thead>
+<tbody id="tbodyRegistros"><tr><td colspan="17" class="empty-state">No hay registros guardados</td></tr></tbody>
+</table>
+</div>
+</div>
+
+</div>
+<!-- ===== PESTAÑA 3: DASHBOARD ===== -->
+<div class="tab-panel" id="tab-dashboard">
+<div class="stats">
+<div class="stat-card"><h3 id="statTotal">0</h3><p>Total Registros</p></div>
+<div class="stat-card" style="background:linear-gradient(135deg,var(--success) 0%,#43a047 100%)"><h3 id="statIngresos">0</h3><p>Ingresos Hoy</p></div>
+<div class="stat-card" style="background:linear-gradient(135deg,var(--accent) 0%,#ff8f00 100%)"><h3 id="statSalidas">0</h3><p>Salidas Hoy</p></div>
+</div>
+
+
+  <div class="card" style="margin-top:15px">
+    <div class="card-title">📊 Resumen de Actividad</div>
+    <div id="dashboardContent" style="text-align:center;padding:20px;color:#666">
+      <p style="font-size:1rem;margin-bottom:10px">📈 Estadísticas generales del sistema</p>
+      <p style="font-size:0.85rem">Use los filtros en la pestaña <strong>Historial</strong> para análisis detallados.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PESTAÑA 4: RESPALDO ===== -->
+<div class="tab-panel" id="tab-respaldo">
+
+  <!-- Tarjeta de Acciones Rápidas -->
+  <div class="card">
+    <div class="card-title">🛠️ Acciones Rápidas</div>
+    <div class="btn-group" style="flex-direction:column;gap:10px;margin-top:0">
+      <button type="button" class="btn btn-primary" style="width:100%" onclick="imprimirRegistros()">
+        <span>🖨️</span> IMPRIMIR REGISTROS
+      </button>
+      <button type="button" class="btn btn-success" style="width:100%" onclick="compartirResumenGeneral()">
+        <span>📤</span> COMPARTIR RESUMEN
+      </button>
+    </div>
+    <div class="info-text" style="margin-top:12px">
+      📌 <strong>Imprimir</strong>: genera una versión optimizada para impresora con todos los registros.<br>
+      📌 <strong>Compartir</strong>: envía un resumen textual por WhatsApp, Telegram o Email.
+    </div>
+  </div>
+
+<!-- ============ TARJETA COPIA DE SEGURIDAD ============ -->
+
+<div class="card" id="backupCard">
+  <div class="card-title">💾 Copia de Seguridad</div>
+
+  <!-- Estado del último respaldo -->
+  <div id="backupStatusBar" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;font-weight:700;font-size:0.9rem;margin-bottom:8px;background:#e3f2fd;border:2px solid #1976d2;color:#1565c0">
+    <span style="font-size:1.3rem">📲</span>
+    <div style="flex:1;min-width:0">
+      <div id="backupStatusTxt">Listo para guardar</div>
+      <div id="backupLastSaveTxt" style="font-size:0.75rem;font-weight:500;opacity:0.85;margin-top:2px"></div>
+    </div>
+  </div>
+
+  <!-- Nombre del último archivo -->
+  <div id="backupFilenameBar" style="display:none;align-items:center;gap:8px;padding:9px 13px;border-radius:8px;font-size:0.8rem;font-weight:600;margin-bottom:8px;background:#e8f5e9;border:1.5px solid #43a047;color:#2e7d32">
+    <span style="font-size:1rem">📄</span>
+    <div style="min-width:0">
+      <div id="backupFilenameTxt" style="word-break:break-all"></div>
+      <div style="font-size:0.7rem;font-weight:500;opacity:0.8;margin-top:2px">Archivo disponible en Descargas / WhatsApp / Email</div>
+    </div>
+  </div>
+
+  <!-- Sección: ESTE DISPOSITIVO -->
+  <div style="font-size:0.78rem;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Este dispositivo</div>
+  <div class="btn-group" style="margin-top:0;flex-direction:column;gap:8px">
+    <button type="button" class="btn btn-success" style="width:100%" onclick="exportarExcelBackup(false)">
+      <span>💾</span> GUARDAR / COMPARTIR RESPALDO
+    </button>
+    <button type="button" class="btn btn-warning" style="width:100%;display:none" id="btnRestaurarCache" onclick="restaurarDesdeCache()">
+      <span>⚡</span> RESTAURAR DESDE CACHÉ INTERNA
+    </button>
+  </div>
+
+  <!-- Sección: OTRO DISPOSITIVO -->
+  <div style="font-size:0.78rem;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.5px;margin:14px 0 6px">Otro celular / Nueva instalación</div>
+  <div class="btn-group" style="margin-top:0;flex-direction:column;gap:8px">
+    <button type="button" class="btn btn-primary" style="width:100%" onclick="abrirImportacion()">
+      <span>🔄</span> RESTAURAR DESDE ARCHIVO
+    </button>
+    <button type="button" class="btn" style="width:100%;background:#546e7a;color:#fff" onclick="abrirAyudaDispositivos()">
+      <span>❓</span> ¿CÓMO ENCONTRAR EL ARCHIVO?
+    </button>
+  </div>
+
+  <div class="info-text" style="margin-top:12px">
+    📌 <strong>GUARDAR / COMPARTIR</strong>: guarda en el celular <em>y</em> te permite enviarlo por WhatsApp, Drive o Email — funciona en cualquier marca.<br>
+    📌 <strong>CACHÉ INTERNA</strong>: restaura sin necesitar el archivo (solo si no borraste los datos de la app).<br>
+    📌 El respaldo se actualiza automáticamente en cada registro.
+  </div>
+  <!-- Input oculto para importar archivo -->
+  <input type="file" id="inputImportExcel" accept=".xlsx" style="display:none" onchange="importarDesdeInputFile(this)">
+</div>
+
+
+</div>
+</div>
+</div>
+
+<div class="modal-overlay" id="modalClave">
+<div class="modal">
+<h3>🔒 Ingrese la Clave</h3>
+<p style="margin-bottom:15px;color:#666;font-size:0.9rem">Para editar el registro</p>
+<input type="tel" id="inputClave" placeholder="0000" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="off" onkeydown="if(event.key==='Enter')verificarClave()">
+<div id="errorClave" style="display:none;background:#ffebee;border:2px solid #c62828;border-radius:10px;padding:12px 15px;margin-bottom:15px;color:#c62828;font-weight:700;font-size:0.95rem;text-align:center">⛔ CLAVE INCORRECTA — Intente nuevamente</div>
+<div class="btn-group" style="justify-content:center">
+<button class="btn btn-primary" onclick="verificarClave()">✅ ACEPTAR</button>
+<button class="btn btn-danger" onclick="cerrarModal()">❌ CANCELAR</button>
+</div>
+</div>
+</div>
+
+<div class="modal-overlay" id="modalCompartir">
+<div class="modal" style="max-width:420px;text-align:center">
+  <div id="shareIcon" style="font-size:3rem;margin-bottom:8px">📊</div>
+  <h3 id="shareTitulo" style="margin-bottom:6px">Archivo listo</h3>
+  <p id="shareSubtitulo" style="color:#666;font-size:0.85rem;margin-bottom:4px">Elige cómo deseas guardarlo</p>
+  <p id="shareSubtituloExtra" style="display:none;color:#1565c0;font-size:0.78rem;font-weight:700;background:#e3f2fd;border-radius:8px;padding:7px 10px;margin-bottom:14px">📲 "Compartir" abre las apps de tu celular<br>(Drive, WhatsApp, Telegram, Email...)</p>
+  <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+    <button id="btnShareGuardar" class="btn btn-primary" style="font-size:1rem;padding:14px" onclick="shareAccion('guardar')">
+      💾 GUARDAR EN ESTE DISPOSITIVO
+    </button>
+    <button id="btnShareWhatsApp" class="btn btn-success" style="font-size:1rem;padding:14px;background:#1976d2;border-color:#1976d2;flex-direction:column;gap:2px" onclick="shareAccion('compartir')">
+      <span style="font-size:1rem">📲 COMPARTIR CON OTRA APP</span>
+      <span style="font-size:0.72rem;opacity:0.9;font-weight:500">Drive • WhatsApp • Telegram • Email • etc.</span>
+    </button>
+    <button id="btnShareEmail" class="btn" style="font-size:1rem;padding:14px;background:#ea4335;border-color:#ea4335;color:#fff;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;border:none" onclick="shareAccion('email')">
+      ✉️ ENVIAR POR EMAIL
+    </button>
+  </div>
+  <button class="btn btn-danger" style="width:100%" onclick="cerrarModalCompartir()">❌ CANCELAR</button>
+</div>
+</div>
+
+<div class="modal-overlay" id="modalPDF">
+<div class="modal" style="max-width:500px;text-align:left;max-height:90vh;overflow-y:auto">
+<h3 style="text-align:center;margin-bottom:18px">📄 Exportar PDF — Filtros</h3>
+
+<div style="margin-bottom:14px">
+  <label style="font-weight:700;font-size:0.85rem;color:#444;display:block;margin-bottom:8px">📅 RANGO DE FECHAS</label>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div><label style="font-size:0.78rem;color:#666">Desde</label><input type="date" id="pdfFechaDesde" onchange="actualizarConteoPDF()" style="width:100%;padding:10px;border:2px solid #e0e0e0;border-radius:8px;font-size:0.9rem"></div>
+    <div><label style="font-size:0.78rem;color:#666">Hasta</label><input type="date" id="pdfFechaHasta" onchange="actualizarConteoPDF()" style="width:100%;padding:10px;border:2px solid #e0e0e0;border-radius:8px;font-size:0.9rem"></div>
+  </div>
+</div>
+
+<div style="margin-bottom:14px">
+  <label style="font-weight:700;font-size:0.85rem;color:#444;display:block;margin-bottom:8px">🔄 TIPO DE MOVIMIENTO</label>
+  <div style="display:flex;gap:8px">
+    <label style="flex:1;display:flex;align-items:center;gap:6px;padding:10px;border:2px solid #e0e0e0;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.9rem">
+      <input type="radio" name="pdfTipo" value="TODOS" checked onchange="actualizarConteoPDF()"> Todos
+    </label>
+    <label style="flex:1;display:flex;align-items:center;gap:6px;padding:10px;border:2px solid #e0e0e0;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.9rem">
+      <input type="radio" name="pdfTipo" value="INGRESO" onchange="actualizarConteoPDF()"> 📥 Ingresos
+    </label>
+    <label style="flex:1;display:flex;align-items:center;gap:6px;padding:10px;border:2px solid #e0e0e0;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.9rem">
+      <input type="radio" name="pdfTipo" value="SALIDA" onchange="actualizarConteoPDF()"> 📤 Salidas
+    </label>
+  </div>
+</div>
+
+<div style="margin-bottom:14px">
+  <label style="font-weight:700;font-size:0.85rem;color:#444;display:block;margin-bottom:8px">🔍 FILTROS ADICIONALES</label>
+  <input type="text" id="pdfFiltroConductor" placeholder="Conductor (dejar vacío = todos)" oninput="actualizarConteoPDF()" style="width:100%;padding:10px;border:2px solid #e0e0e0;border-radius:8px;font-size:0.9rem;margin-bottom:8px">
+  <input type="text" id="pdfFiltroPlaca" placeholder="Placa (dejar vacío = todas)" oninput="actualizarConteoPDF()" style="width:100%;padding:10px;border:2px solid #e0e0e0;border-radius:8px;font-size:0.9rem">
+</div>
+
+<div style="margin-bottom:18px">
+  <label style="font-weight:700;font-size:0.85rem;color:#444;display:block;margin-bottom:8px">📋 COLUMNAS A INCLUIR</label>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="pdfColumnas">
+    <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;padding:6px;background:#f5f5f5;border-radius:6px;cursor:pointer"><input type="checkbox" value="fecha" checked> Fecha</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;padding:6px;background:#f5f5f5;border-radius:6px;cursor:pointer"><input type="checkbox" value="hora" checked> Hora</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;padding:6px;background:#f5f5f5;border-radius:6px;cursor:pointer"><input type="checkbox" value="tipo" checked> Tipo</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;padding:6px;background:#f5f5f5;border-radius:6px;cursor:pointer"><input type="checkbox" value="placa" checked> Placa</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;padding:6px;background:#f5f5f5;border-radius:6px;cursor:pointer"><input type="checkbox" value="placa2" checked> Segunda Placa</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;padding:6px;background:#f5f5f5;border-radius:6px;cursor:pointer"><input type="checkbox" value="tipoVehiculo" checked> Tipo Vehículo</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;padding:6px;background:#f5f5f5;border-radius:6px;cursor:pointer"><input type="checkbox" value="conductor" checked> Conductor</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;padding:6px;background:#f5f5f5;border-radius:6px;cursor:pointer"><input type="checkbox" value="empresa" checked> Empresa</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;padding:6px;background:#f5f5f5;border-radius:6px;cursor:pointer"><input type="checkbox" value="procedenciaDestino" checked> Proc/Destino</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;padding:6px;background:#f5f5f5;border-radius:6px;cursor:pointer"><input type="checkbox" value="materiales"> Materiales</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;padding:6px;background:#f5f5f5;border-radius:6px;cursor:pointer"><input type="checkbox" value="descMateriales"> Desc. Mat.</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;padding:6px;background:#f5f5f5;border-radius:6px;cursor:pointer"><input type="checkbox" value="precintos"> Precintos</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;padding:6px;background:#f5f5f5;border-radius:6px;cursor:pointer"><input type="checkbox" value="guia"> Guía</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;padding:6px;background:#f5f5f5;border-radius:6px;cursor:pointer"><input type="checkbox" value="acompanantes"> Acompañantes</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;padding:6px;background:#f5f5f5;border-radius:6px;cursor:pointer"><input type="checkbox" value="personasAcompanantes"> Personas Acomp.</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;padding:6px;background:#f5f5f5;border-radius:6px;cursor:pointer"><input type="checkbox" value="observaciones" checked> Observaciones</label>
+  </div>
+</div>
+
+<div id="pdfConteo" style="text-align:center;padding:8px;background:#e8eaf6;border-radius:8px;font-weight:700;color:#1a237e;font-size:0.9rem;margin-bottom:14px">Calculando registros...</div>
+
+<div style="display:flex;gap:10px">
+  <button class="btn btn-primary" style="flex:1" onclick="generarPDFFiltrado()">📄 GENERAR PDF</button>
+  <button class="btn btn-danger" style="flex:1" onclick="cerrarModalPDF()">❌ CANCELAR</button>
+</div>
+</div>
+</div>
+
+<!-- DETALLE FULLSCREEN -->
+<div class="detail-overlay" id="modalDetalle">
+  <div class="detail-header">
+    <h2>📋 Detalle del Registro</h2>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn-close-detail" onclick="imprimirUnicoDesdeDetalle()" title="Imprimir registro" style="width:auto;padding:0 14px;font-size:1.1rem">🖨️</button>
+      <button class="btn-close-detail" onclick="generarPDFUnicoDesdeDetalle()" title="Exportar PDF" style="width:auto;padding:0 14px;font-size:1.1rem">📄</button>
+      <button class="btn-close-detail" onclick="cerrarDetalle()" title="Cerrar">✕</button>
+    </div>
+  </div>
+  <div class="detail-body" id="detalleContenido">
+    <!-- contenido dinámico -->
+  </div>
+</div>
+
+<div class="img-viewer" id="imgViewer" onclick="this.classList.remove('active')"><span class="close-viewer">&times;</span><img id="imgViewerSrc" src="" alt="Vista previa"></div>
+<div class="toast" id="toast"></div>
+
+<div class="footer">
+<p>Desarrollado por <strong>Edward Quezada M.</strong> — <a href="https://www.linkedin.com/in/edwardqm" target="_blank" style="color:var(--primary);text-decoration:none;font-weight:700">🔗 LinkedIn</a></p>
+<p>Versión 2.4.0 | Registro Vehicular  | Profesional en Seguridad Patrimonial</p>
+<p style="margin-top:5px;font-size:0.75rem">© 2026 - Todos los derechos reservados</p>
+</div>
+
+<script>
+const DB_NAME = 'RegistroVehicularDB';
+const DB_VERSION = 4;
+const STORE_NAME = 'registros';
+let db = null;
+let pendingId = null;
+window._detalleIdActual = null;
+
+function initDB() {
+    return new Promise(function(resolve, reject) {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onerror = function() { reject(request.error); };
+        request.onsuccess = function() { db = request.result; resolve(db); };
+        request.onupgradeneeded = function(e) {
+            const database = e.target.result;
+            if (!database.objectStoreNames.contains(STORE_NAME)) {
+                const store = database.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+                store.createIndex('placa', 'placa', { unique: false });
+                store.createIndex('conductor', 'conductor', { unique: false });
+                store.createIndex('fecha', 'fecha', { unique: false });
+            }
+            if (!database.objectStoreNames.contains('config')) {
+                database.createObjectStore('config', { keyPath: 'key' });
+            }
+        };
+    });
+}
+
+function guardarRegistro(data) {
+    return new Promise(function(resolve, reject) {
+        const tx = db.transaction([STORE_NAME], 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const request = store.put(data);
+        request.onsuccess = function() { resolve(request.result); };
+        request.onerror = function() { reject(request.error); };
+    });
+}
+
+function obtenerRegistros() {
+    return new Promise(function(resolve, reject) {
+        const tx = db.transaction([STORE_NAME], 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const request = store.getAll();
+        request.onsuccess = function() {
+            var sorted = request.result.sort(function(a,b){
+                if(a.fecha !== b.fecha) return b.fecha.localeCompare(a.fecha);
+                return b.hora.localeCompare(a.hora);
+            });
+            resolve(sorted);
+        };
+        request.onerror = function() { reject(request.error); };
+    });
+}
+
+function obtenerRegistro(id) {
+    return new Promise(function(resolve, reject) {
+        const tx = db.transaction([STORE_NAME], 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const request = store.get(id);
+        request.onsuccess = function() { resolve(request.result); };
+        request.onerror = function() { reject(request.error); };
+    });
+}
+
+// ============================================================
+// CONFIG STORE (metadata de backups en IndexedDB)
+// ============================================================
+function setConfigValue(key, value) {
+    return new Promise(function(resolve, reject) {
+        const tx = db.transaction(['config'], 'readwrite');
+        const store = tx.objectStore('config');
+        const req = store.put({ key: key, value: value });
+        req.onsuccess = function() { resolve(); };
+        req.onerror = function() { reject(req.error); };
+    });
+}
+function getConfigValue(key) {
+    return new Promise(function(resolve, reject) {
+        const tx = db.transaction(['config'], 'readonly');
+        const store = tx.objectStore('config');
+        const req = store.get(key);
+        req.onsuccess = function() { resolve(req.result ? req.result.value : null); };
+        req.onerror = function() { reject(req.error); };
+    });
+}
+
+// ============================================================
+// SISTEMA DE COPIA DE SEGURIDAD — COMPATIBLE CON WEBVIEW APK
+// ============================================================
+var BACKUP_FILENAME = 'Registro_Vehicular_Backup';
+
+// Inicializar — solo actualiza el estado visual
+async function initDirectoryHandle() {
+    await actualizarEstadoBackup();
+}
+
+// Clave única para deduplicación
+function claveUnicaReg(r) {
+    var placa = r.sinPlaca === 'SI' ? 'SIN_PLACA' : (r.placa || '');
+    return [(r.fecha||''), (r.hora||''), placa, (r.conductor||'').toUpperCase(), (r.tipo||'')].join('|');
+}
+
+// Generar blob Excel con todos los registros
+function generarBlobExcel(regs) {
+    var data = regs.map(function(r) {
+        return {
+            'FECHA': r.fecha || '',
+            'HORA': r.hora || '',
+            'TIPO': r.tipo || '',
+            'PLACA': r.sinPlaca === 'SI' ? 'SIN PLACA' : (r.placa || ''),
+            'SEGUNDA PLACA': r.segundaPlaca === 'SI' ? (r.placa2 || '') : 'NO',
+            'TIPO VEHICULO': r.tipoVehiculo || '',
+            'CONDUCTOR': r.conductor || '',
+            'EMPRESA': r.empresa || '',
+            'PROCEDENCIA/DESTINO': r.procedenciaDestino || '',
+            'MATERIALES': r.materiales || '',
+            'DESCRIPCION MATERIALES': r.descMateriales || '',
+            'PRECINTOS': r.precintos || '',
+            'GUIA': r.guia || '',
+            'ACOMPANANTES': r.acompanantes || '',
+            'PERSONAS ACOMPANANTES': r.personasAcompanantes || '',
+            'OBSERVACIONES': r.observaciones || '',
+            '_SIN_PLACA': r.sinPlaca || 'NO',
+            '_TIMESTAMP': r.timestamp || '',
+            '_BACKUP_KEY': claveUnicaReg(r)
+        };
+    });
+    var ws = XLSX.utils.json_to_sheet(data);
+    var colWidths = [10,8,10,12,12,14,28,22,22,12,28,10,8,12,30,35,8,22,40];
+    ws['!cols'] = colWidths.map(function(w){ return {wch: w}; });
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Registros');
+    var wbout = XLSX.write(wb, {bookType: 'xlsx', type: 'array'});
+    return new Blob([wbout], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+
+// Convertir Blob a base64 (para guardar en caché IndexedDB)
+function getFechaLocal(d) {
+    d = d || new Date();
+    var y = d.getFullYear();
+    var m = String(d.getMonth() + 1).padStart(2, '0');
+    var day = String(d.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + day;
+}
+function blobToBase64(blob) {
+    return new Promise(function(resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function(e) { resolve(e.target.result); };
+        reader.onerror = function(e) { reject(e); };
+        reader.readAsDataURL(blob);
+    });
+}
+
+// GUARDAR: caché IndexedDB siempre + modal de compartir (manual) o descarga silenciosa (auto)
+async function exportarExcelBackup(silencioso) {
+    silencioso = silencioso === true;
+    var regs = await obtenerRegistros();
+    if (regs.length === 0) {
+        if (!silencioso) mostrarToast('❌ No hay registros para respaldar');
+        return;
+    }
+    var blob = generarBlobExcel(regs);
+    var fecha = getFechaLocal();
+    var nombre = BACKUP_FILENAME + '_' + fecha + '.xlsx';
+
+    // Siempre guardar caché en IndexedDB (funciona en todos los dispositivos)
+    try {
+        var b64 = await blobToBase64(blob);
+        await setConfigValue('backupCacheBlob', b64);
+        await setConfigValue('backupCacheFilename', nombre);
+        await setConfigValue('backupCacheCount', regs.length);
+        await setConfigValue('backupLastSave', new Date().toISOString());
+        await setConfigValue('backupCount', regs.length);
+        await setConfigValue('backupLastFilename', nombre);
+    } catch(cacheErr) {
+        console.warn('Error al guardar caché:', cacheErr);
+    }
+
+    await actualizarEstadoBackup();
+
+    if (silencioso) {
+        // Auto-backup: intento silencioso de descarga como red de seguridad adicional
+        try {
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = nombre;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
+        } catch(e) { /* silencioso */ }
+    } else {
+        // Backup manual: mostrar modal de compartir para máxima compatibilidad
+        // El usuario elige: guardar en dispositivo, compartir con otra app (Drive/WA/etc), email
+        window._shareBlob  = blob;
+        window._shareNombre = nombre;
+        window._shareTipo  = 'backup';
+        window._shareMime  = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+        window._shareTexto = '💾 Copia de Seguridad — Registro Vehicular\n' +
+                             regs.length + ' registros\nFecha: ' + fecha + '\nArchivo: ' + nombre;
+        // esBackup=true → muestra nota explicativa sobre "Compartir con otra app"
+        abrirModalCompartir('💾', 'Respaldo listo para guardar',
+            regs.length + ' registros — ' + nombre, false, true);
+    }
+}
+
+// Actualizar barra de estado
+async function actualizarEstadoBackup() {
+    var bar = document.getElementById('backupStatusBar');
+    var txt = document.getElementById('backupStatusTxt');
+    var sub = document.getElementById('backupLastSaveTxt');
+    var fileBar = document.getElementById('backupFilenameBar');
+    var fileTxt = document.getElementById('backupFilenameTxt');
+    var btnCache = document.getElementById('btnRestaurarCache');
+    if (!bar || !txt) return;
+
+    var lastSave = null, lastCount = null, lastFilename = null, hasCache = null;
+    try {
+        lastSave     = await getConfigValue('backupLastSave');
+        lastCount    = await getConfigValue('backupCount');
+        lastFilename = await getConfigValue('backupLastFilename');
+        hasCache     = await getConfigValue('backupCacheBlob');
+    } catch(e) {}
+
+    var subTxt = '';
+    if (lastSave) {
+        var d = new Date(lastSave);
+        subTxt = 'Último respaldo: ' + d.toLocaleDateString('es-ES') + ' ' + d.toLocaleTimeString('es-ES', {hour:'2-digit',minute:'2-digit'});
+        if (lastCount) subTxt += ' — ' + lastCount + ' registros';
+    }
+    if (sub) sub.textContent = subTxt;
+    bar.style.background = '#e3f2fd';
+    bar.style.borderColor = '#1976d2';
+    bar.style.color = '#1565c0';
+    txt.textContent = lastSave ? '✅ Respaldo realizado' : '📲 Listo para guardar';
+
+    // Mostrar nombre del archivo y ruta
+    if (fileBar && fileTxt && lastFilename) {
+        fileTxt.textContent = '📄 ' + lastFilename;
+        fileBar.style.display = 'flex';
+    } else if (fileBar) {
+        fileBar.style.display = 'none';
+    }
+
+    // Mostrar botón de caché solo si existe
+    if (btnCache) {
+        btnCache.style.display = hasCache ? '' : 'none';
+    }
+}
+
+// RESTAURAR DESDE CACHÉ (no requiere archivo, usa el guardado en IndexedDB)
+async function restaurarDesdeCache() {
+    var cacheBlob = null, cacheName = null, cacheCount = null;
+    try {
+        cacheBlob  = await getConfigValue('backupCacheBlob');
+        cacheName  = await getConfigValue('backupCacheFilename');
+        cacheCount = await getConfigValue('backupCacheCount');
+    } catch(e) {}
+
+    if (!cacheBlob) {
+        mostrarToast('❌ No hay caché de respaldo disponible');
+        return;
+    }
+
+    var msg = '⚡ RESTAURAR DESDE CACHÉ\n\n';
+    msg += 'Archivo en caché: ' + (cacheName || 'respaldo') + '\n';
+    if (cacheCount) msg += 'Registros: ' + cacheCount + '\n';
+    msg += '\nSolo se agregarán registros nuevos. ¿Continuar?';
+
+    if (!window.confirm(msg)) return;
+
+    try {
+        // Convertir base64 a Blob
+        var res = await fetch(cacheBlob);
+        var blob = await res.blob();
+        var file = new File([blob], cacheName || 'backup.xlsx', {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
+        await importarDesdeExcel(file);
+    } catch(e) {
+        mostrarToast('❌ Error al restaurar desde caché: ' + e.message);
+    }
+}
+
+// MODAL AYUDA DISPOSITIVOS
+function abrirAyudaDispositivos() {
+    document.getElementById('modalAyudaDispositivos').classList.add('active');
+}
+function cerrarAyudaDispositivos() {
+    document.getElementById('modalAyudaDispositivos').classList.remove('active');
+}
+
+// RESTAURAR DESDE ARCHIVO: abre el selector de archivos nativo
+async function abrirImportacion() {
+    document.getElementById('inputImportExcel').click();
+}
+
+// Handler del input file oculto
+async function importarDesdeInputFile(input) {
+    var file = input.files && input.files[0];
+    if (!file) return;
+    await importarDesdeExcel(file);
+    input.value = '';
+}
+
+// Importar y fusionar registros desde un archivo Excel sin duplicados
+async function importarDesdeExcel(file) {
+    try {
+        mostrarToast('⏳ Leyendo archivo...');
+        var arrayBuffer = await file.arrayBuffer();
+        var wb = XLSX.read(arrayBuffer, { type: 'array' });
+        var ws = wb.Sheets[wb.SheetNames[0]];
+        var rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+        if (!rows || rows.length === 0) {
+            mostrarToast('❌ El archivo no contiene registros');
+            return;
+        }
+
+        // Construir mapa de claves existentes en la base
+        var existentes = await obtenerRegistros();
+        var clavesExist = new Set();
+        existentes.forEach(function(r) { clavesExist.add(claveUnicaReg(r)); });
+
+        var nuevos = 0;
+        var omitidos = 0;
+
+        for (var i = 0; i < rows.length; i++) {
+            var row = rows[i];
+            var reg = excelRowToRegistro(row);
+            if (!reg.fecha || !reg.tipo) { omitidos++; continue; }
+
+            var clave = row['_BACKUP_KEY'] || claveUnicaReg(reg);
+            if (clavesExist.has(clave)) {
+                omitidos++;
+                continue;
+            }
+
+            delete reg.id; // dejar que IDB asigne nuevo id
+            await guardarRegistro(reg);
+            clavesExist.add(clave);
+            nuevos++;
+        }
+
+        marcarHistorialSucio();
+        await cargarRegistros(true);
+        await poblarListas();
+        actualizarStats();
+
+        if (nuevos === 0) {
+            mostrarToast('✅ Sin registros nuevos. ' + omitidos + ' ya existían.');
+        } else {
+            mostrarToast('✅ ' + nuevos + ' registro(s) importado(s). ' + omitidos + ' ya existían.');
+        }
+    } catch(e) {
+        console.error('Error importar:', e);
+        mostrarToast('❌ Error al importar: ' + e.message);
+    }
+}
+
+// Convertir fila de Excel a objeto registro
+function excelRowToRegistro(row) {
+    var sinPlaca = (row['_SIN_PLACA'] || 'NO').toString().trim().toUpperCase();
+    var placa = (row['PLACA'] || '').toString().trim().toUpperCase();
+    if (placa === 'SIN PLACA') { sinPlaca = 'SI'; placa = ''; }
+
+    var segPlacaVal = (row['SEGUNDA PLACA'] || 'NO').toString().trim().toUpperCase();
+    var tieneSegPlaca = (segPlacaVal !== 'NO' && segPlacaVal !== '');
+
+    return {
+        fecha: (row['FECHA'] || '').toString().trim(),
+        hora: (row['HORA'] || '').toString().trim(),
+        tipo: (row['TIPO'] || '').toString().trim().toUpperCase(),
+        sinPlaca: sinPlaca,
+        placa: placa,
+        segundaPlaca: tieneSegPlaca ? 'SI' : 'NO',
+        placa2: tieneSegPlaca ? segPlacaVal : '',
+        tipoVehiculo: (row['TIPO VEHICULO'] || '').toString().trim().toUpperCase(),
+        conductor: (row['CONDUCTOR'] || '').toString().trim().toUpperCase(),
+        empresa: (row['EMPRESA'] || '').toString().trim().toUpperCase(),
+        procedenciaDestino: (row['PROCEDENCIA/DESTINO'] || '').toString().trim().toUpperCase(),
+        materiales: (row['MATERIALES'] || 'NO').toString().trim().toUpperCase(),
+        descMateriales: (row['DESCRIPCION MATERIALES'] || '').toString().trim(),
+        precintos: (row['PRECINTOS'] || 'NO').toString().trim().toUpperCase(),
+        fotoPrecinto1: null,
+        fotoPrecinto2: null,
+        guia: (row['GUIA'] || 'NO').toString().trim().toUpperCase(),
+        fotoGuia: null,
+        acompanantes: (row['ACOMPANANTES'] || 'NO').toString().trim().toUpperCase(),
+        personasAcompanantes: (row['PERSONAS ACOMPANANTES'] || '').toString().trim(),
+        observaciones: (row['OBSERVACIONES'] || '').toString().trim(),
+        timestamp: (row['_TIMESTAMP'] || new Date().toISOString())
+    };
+}
+
+function mostrarToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function() { t.classList.remove('show'); }, 3000);
+}
+
+function toUpper(e) { e.target.value = e.target.value.toUpperCase(); }
+
+function fmtPlaca(e) {
+    let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (val.length > 3) val = val.substring(0, 3) + '-' + val.substring(3, 7);
+    e.target.value = val;
+}
+
+// 🔧 Redimensiona y comprime la imagen antes de convertirla a base64.
+// Evita guardar fotos de 3-8MB de la cámara, que son las que hacen
+// que el historial se congele en teléfonos de gama baja.
+function comprimirImagen(file, maxDim, calidad) {
+    maxDim = maxDim || 1280;
+    calidad = calidad || 0.7;
+    return new Promise(function(resolve, reject) {
+        const img = new Image();
+        const urlTemp = URL.createObjectURL(file);
+        img.onload = function() {
+            URL.revokeObjectURL(urlTemp);
+            let w = img.width, h = img.height;
+            if (w > h && w > maxDim) { h = Math.round(h * (maxDim / w)); w = maxDim; }
+            else if (h > maxDim) { w = Math.round(w * (maxDim / h)); h = maxDim; }
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', calidad));
+        };
+        img.onerror = function() {
+            URL.revokeObjectURL(urlTemp);
+            const reader = new FileReader();
+            reader.onload = function(e) { resolve(e.target.result); };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        };
+        img.src = urlTemp;
+    });
+}
+
+function leerImg(file) {
+    return new Promise(function(resolve) {
+        if (!file) return resolve(null);
+        comprimirImagen(file, 1280, 0.7).then(resolve).catch(function() { resolve(null); });
+    });
+}
+
+function preview(inputId, previewId, labelId, txtOk, txtDefault) {
+    const inp = document.getElementById(inputId);
+    const pre = document.getElementById(previewId);
+    const lbl = document.getElementById(labelId);
+    inp.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        lbl.innerHTML = '<span class="camera-icon">⏳</span>Procesando...';
+        comprimirImagen(file, 1280, 0.7).then(function(dataUrl) {
+            pre.src = dataUrl;
+            pre.classList.remove('hidden');
+            lbl.classList.add('has-file');
+            lbl.innerHTML = '<span class="camera-icon">✅</span>' + txtOk;
+        }).catch(function() {
+            mostrarToast('❌ Error al procesar la foto');
+            lbl.innerHTML = '<span class="camera-icon">📷</span>' + txtDefault;
+        });
+    });
+}
+
+function previewGuia() {
+    const inp = document.getElementById('fotoGuia');
+    const pre = document.getElementById('previewGuia');
+    const lbl = document.getElementById('lblGuiaFoto');
+    inp.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        lbl.classList.add('has-file');
+        if (file.type === 'application/pdf') {
+            pre.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MzMjgyOCI+PHBhdGggZD0iTTE0IDJINmMtMS4xIDAtMiAuOS0yIDJ2MTZjMCAxLjEuOSAyIDIgMmgxMmMxLjEgMCAyLS45IDItMlY4bC02LTZ6bTQuNSAxOC41aC0xM1YzaDExbDQuNSA0LjV2MTMuNXpNMTQgM1Y5aDZ6Ii8+PHBhdGggZD0iTTE2LjUgMTEuNWgtOWwuNSAzaDhsLS41LTN6IiBmaWxsPSIjZmZmIi8+PC9zdmc+';
+            pre.classList.remove('hidden');
+            pre.style.maxHeight = '80px';
+            pre.style.width = '80px';
+            pre.style.objectFit = 'contain';
+            lbl.innerHTML = '<span class="camera-icon">✅</span>PDF ADJUNTADO';
+        } else {
+            lbl.innerHTML = '<span class="camera-icon">⏳</span>Procesando...';
+            comprimirImagen(file, 1280, 0.7).then(function(dataUrl) {
+                pre.src = dataUrl;
+                pre.classList.remove('hidden');
+                pre.style.maxHeight = '160px';
+                pre.style.width = 'auto';
+                lbl.innerHTML = '<span class="camera-icon">✅</span>GUIA ADJUNTADA';
+            }).catch(function() {
+                mostrarToast('❌ Error al procesar la foto');
+            });
+        }
+    });
+}
+
+function actualizarTextos(tipo) {
+    const ing = tipo === 'INGRESO';
+    const sal = tipo === 'SALIDA';
+    if (!ing && !sal) return;
+    const m = ing ? 'Trae' : 'Lleva';
+    const p = ing ? 'Viene con' : 'Va con';
+    const g = ing ? 'Viene con' : 'Va con';
+    const a = ing ? 'Viene con' : 'Va con';
+    document.getElementById('lblMateriales').textContent = '¿' + m + ' Materiales?';
+    document.getElementById('lblPrecintos').textContent = '¿' + p + ' Precintos?';
+    document.getElementById('lblGuia').textContent = '¿' + g + ' Guia?';
+    document.getElementById('lblAcompanantes').textContent = '¿' + a + ' Acompanantes?';
+    document.getElementById('lblProcedenciaDestino').textContent = ing ? 'Procedencia' : 'Destino';
+}
+
+function mostrarSegundaPlaca(mostrar) {
+    document.getElementById('segundaPlacaBox').classList.toggle('hidden', !mostrar);
+}
+
+function mostrarMateriales(mostrar) {
+    document.getElementById('materialesBox').classList.toggle('hidden', !mostrar);
+    if (!mostrar) {
+        document.getElementById('precintosBox').classList.add('hidden');
+        document.getElementById('guiaBox').classList.add('hidden');
+        document.getElementById('descMateriales').value = '';
+    }
+}
+
+function mostrarPrecintos(mostrar) {
+    document.getElementById('precintosBox').classList.toggle('hidden', !mostrar);
+}
+
+function mostrarGuia(mostrar) {
+    document.getElementById('guiaBox').classList.toggle('hidden', !mostrar);
+}
+
+function mostrarAcompanantes(mostrar) {
+    document.getElementById('acompanantesBox').classList.toggle('hidden', !mostrar);
+}
+
+// 🔧 NUEVO: Mostrar/ocultar placas según checkbox "sin placa"
+function mostrarPlacas(mostrar) {
+    const container = document.getElementById('placasContainer');
+    const placaInput = document.getElementById('placa');
+    container.classList.toggle('hidden', !mostrar);
+    if (!mostrar) {
+        placaInput.value = '';
+        placaInput.removeAttribute('required');
+        document.getElementById('placa2').value = '';
+        document.getElementById('segPlacaNo').checked = true;
+        mostrarSegundaPlaca(false);
+    } else {
+        placaInput.setAttribute('required', 'required');
+    }
+}
+
+async function poblarListas() {
+    const regs = await obtenerRegistros();
+    const c = [...new Set(regs.map(function(r) { return r.conductor; }).filter(Boolean))].sort();
+    const e = [...new Set(regs.map(function(r) { return r.empresa; }).filter(Boolean))].sort();
+    const l = [...new Set(regs.map(function(r) { return r.procedenciaDestino; }).filter(Boolean))].sort();
+    const p = [...new Set(regs.map(function(r) { return r.placa; }).filter(Boolean))].sort();
+    const p2 = [...new Set(regs.map(function(r) { return r.placa2; }).filter(Boolean))].sort();
+    document.getElementById('listaConductores').innerHTML = c.map(function(x) { return '<option value="' + x + '">'; }).join('');
+    document.getElementById('listaEmpresas').innerHTML = e.map(function(x) { return '<option value="' + x + '">'; }).join('');
+    document.getElementById('listaLugares').innerHTML = l.map(function(x) { return '<option value="' + x + '">'; }).join('');
+    document.getElementById('listaPlacas').innerHTML = p.map(function(x) { return '<option value="' + x + '">'; }).join('');
+    document.getElementById('listaPlacas2').innerHTML = p2.map(function(x) { return '<option value="' + x + '">'; }).join('');
+}
+
+document.addEventListener('DOMContentLoaded', async function() {
+    await initDB();
+    await initDirectoryHandle();
+
+    const n = new Date();
+    document.getElementById('fecha').value = getFechaLocal(n);
+    document.getElementById('hora').value = n.toTimeString().slice(0, 5);
+
+    // 🔧 NUEVO: Actualizar hora automáticamente cada 30 segundos
+    iniciarRelojEnVivo();
+
+    // 🔧 NUEVO: Actualizar hora al volver de segundo plano
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            const ahora = new Date();
+            document.getElementById('hora').value = ahora.toTimeString().slice(0, 5);
+            // Si cambió de día, actualizar fecha también
+            document.getElementById('fecha').value = getFechaLocal(ahora);
+        }
+    });
+
+    document.querySelectorAll('input[type="text"], textarea').forEach(function(el) {
+        el.addEventListener('input', toUpper);
+    });
+
+    document.getElementById('placa').addEventListener('input', fmtPlaca);
+    document.getElementById('placa2').addEventListener('input', fmtPlaca);
+    document.getElementById('searchPlaca').addEventListener('input', fmtPlaca);
+
+    preview('fotoPrecinto1', 'previewPrecinto1', 'lblPrecinto1', 'FOTO CARGADA', 'TOMAR FOTO O ELEGIR DE GALERIA');
+    preview('fotoPrecinto2', 'previewPrecinto2', 'lblPrecinto2', 'FOTO CARGADA', 'TOMAR FOTO O ELEGIR DE GALERIA');
+    previewGuia();
+
+    document.querySelectorAll('input[name="tipo"]').forEach(function(r) {
+        r.addEventListener('change', function(e) { actualizarTextos(e.target.value); });
+    });
+    document.querySelectorAll('input[name="segundaPlaca"]').forEach(function(r) {
+        r.addEventListener('change', function(e) { mostrarSegundaPlaca(e.target.value === 'SI'); });
+    });
+    document.querySelectorAll('input[name="materiales"]').forEach(function(r) {
+        r.addEventListener('change', function(e) { mostrarMateriales(e.target.value === 'SI'); });
+    });
+    document.querySelectorAll('input[name="precintos"]').forEach(function(r) {
+        r.addEventListener('change', function(e) { mostrarPrecintos(e.target.value === 'SI'); });
+    });
+    document.querySelectorAll('input[name="guia"]').forEach(function(r) {
+        r.addEventListener('change', function(e) { mostrarGuia(e.target.value === 'SI'); });
+    });
+    document.querySelectorAll('input[name="acompanantes"]').forEach(function(r) {
+        r.addEventListener('change', function(e) { mostrarAcompanantes(e.target.value === 'SI'); });
+    });
+
+    // 🔧 NUEVO: Listener para checkbox sin placa
+    document.getElementById('sinPlaca').addEventListener('change', function(e) {
+        mostrarPlacas(!e.target.checked);
+    });
+
+    document.getElementById('registroForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        await procesarFormulario();
+    });
+
+    document.getElementById('inputClave').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') verificarClave();
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            cerrarDetalle();
+            cerrarModal();
+            cerrarModalCompartir();
+            cerrarModalPDF();
+            cerrarAyudaDispositivos();
+        }
+    });
+
+    await cargarRegistros();
+    await poblarListas();
+    actualizarStats();
+
+    // Reconexión automática y silenciosa con Google si el usuario ya había conectado antes
+    intentarReconexionAutomatica().catch(function(){});
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(function(e){ console.error('SW error:', e); });
+    }
+});
+
+async function procesarFormulario() {
+    const editId = document.getElementById('editId').value;
+    const tipo = document.querySelector('input[name="tipo"]:checked') ? document.querySelector('input[name="tipo"]:checked').value : '';
+    const materiales = document.querySelector('input[name="materiales"]:checked') ? document.querySelector('input[name="materiales"]:checked').value : 'NO';
+    const sinPlaca = document.getElementById('sinPlaca').checked ? 'SI' : 'NO';
+
+    if (materiales === 'SI') {
+        const precintos = document.querySelector('input[name="precintos"]:checked') ? document.querySelector('input[name="precintos"]:checked').value : 'NO';
+        const guia = document.querySelector('input[name="guia"]:checked') ? document.querySelector('input[name="guia"]:checked').value : 'NO';
+        const desc = document.getElementById('descMateriales').value.trim();
+        if (precintos === 'NO' && guia === 'NO' && !desc) {
+            mostrarToast('❌ Debe describir los materiales cuando no hay precintos ni guia');
+            document.getElementById('descMateriales').focus();
+            return;
+        }
+    }
+
+    const data = {
+        fecha: document.getElementById('fecha').value,
+        hora: document.getElementById('hora').value,
+        tipo: tipo,
+        sinPlaca: sinPlaca,
+        placa: sinPlaca === 'SI' ? '' : document.getElementById('placa').value,
+        segundaPlaca: sinPlaca === 'SI' ? 'NO' : (document.querySelector('input[name="segundaPlaca"]:checked') ? document.querySelector('input[name="segundaPlaca"]:checked').value : 'NO'),
+        placa2: sinPlaca === 'SI' ? '' : document.getElementById('placa2').value,
+        tipoVehiculo: document.getElementById('tipoVehiculo').value,
+        conductor: document.getElementById('conductor').value,
+        empresa: document.getElementById('empresa').value,
+        procedenciaDestino: document.getElementById('procedenciaDestino').value,
+        materiales: materiales,
+        descMateriales: document.getElementById('descMateriales').value,
+        precintos: document.querySelector('input[name="precintos"]:checked') ? document.querySelector('input[name="precintos"]:checked').value : 'NO',
+        fotoPrecinto1: await leerImg(document.getElementById('fotoPrecinto1').files[0]),
+        fotoPrecinto2: await leerImg(document.getElementById('fotoPrecinto2').files[0]),
+        guia: document.querySelector('input[name="guia"]:checked') ? document.querySelector('input[name="guia"]:checked').value : 'NO',
+        fotoGuia: await leerImg(document.getElementById('fotoGuia').files[0]),
+        acompanantes: document.querySelector('input[name="acompanantes"]:checked') ? document.querySelector('input[name="acompanantes"]:checked').value : 'NO',
+        personasAcompanantes: document.getElementById('personasAcompanantes').value,
+        observaciones: document.getElementById('observaciones').value,
+        timestamp: new Date().toISOString()
+    };
+
+    if (editId) {
+        data.id = parseInt(editId);
+        const ex = await obtenerRegistro(data.id);
+        if (ex) {
+            if (!data.fotoPrecinto1 && ex.fotoPrecinto1 && !_fotosBorradas.fotoPrecinto1) data.fotoPrecinto1 = ex.fotoPrecinto1;
+            if (!data.fotoPrecinto2 && ex.fotoPrecinto2 && !_fotosBorradas.fotoPrecinto2) data.fotoPrecinto2 = ex.fotoPrecinto2;
+            if (!data.fotoGuia && ex.fotoGuia && !_fotosBorradas.fotoGuia) data.fotoGuia = ex.fotoGuia;
+        }
+    }
+
+    const idGuardado = await guardarRegistro(data);
+    // ---- COPIA DE SEGURIDAD AUTOMÁTICA ----
+    exportarExcelBackup(true).catch(function(){});
+    // ----------------------------------------
+    // ---- SINCRONIZACIÓN CON GOOGLE SHEETS (si hay sesión activa) ----
+    if (!data.id) data.id = idGuardado;
+    sincronizarRegistroAHoja(data).catch(function(){});
+    // -------------------------------------------------------------------
+    const esEdicion = !!editId;
+    const idEditado = esEdicion ? parseInt(editId) : null;
+    mostrarToast(esEdicion ? '✅ Registro actualizado correctamente' : '✅ Registro guardado');
+    limpiarFormulario();
+    marcarHistorialSucio();
+    await cargarRegistros(true);
+    await poblarListas();
+    actualizarStats();
+    if (esEdicion && idEditado) {
+        setTimeout(function() {
+            const tabla = document.getElementById('tablaRegistros');
+            if (tabla) tabla.closest('.card').scrollIntoView({behavior: 'smooth', block: 'start'});
+            resaltarFila(idEditado);
+        }, 500);
+    }
+}
+
+function limpiarFormulario() {
+    document.getElementById('registroForm').reset();
+    document.getElementById('editId').value = '';
+    document.getElementById('btnGuardar').innerHTML = '<span>💾</span> GUARDAR REGISTRO';
+    document.getElementById('btnCancelar').style.display = 'none';
+
+    const n = new Date();
+    document.getElementById('fecha').value = getFechaLocal(n);
+    document.getElementById('hora').value = n.toTimeString().slice(0, 5);
+
+    // 🔧 NUEVO: Resetear checkbox sin placa y mostrar placas
+    document.getElementById('sinPlaca').checked = false;
+    mostrarPlacas(true);
+
+    mostrarSegundaPlaca(false);
+    mostrarMateriales(false);
+    mostrarPrecintos(false);
+    mostrarGuia(false);
+    mostrarAcompanantes(false);
+
+    document.getElementById('previewPrecinto1').classList.add('hidden');
+    document.getElementById('previewPrecinto1').src = '';
+    document.getElementById('previewPrecinto2').classList.add('hidden');
+    document.getElementById('previewPrecinto2').src = '';
+    document.getElementById('previewGuia').classList.add('hidden');
+    document.getElementById('previewGuia').src = '';
+
+    document.getElementById('btnDelPrecinto1').classList.add('hidden');
+    document.getElementById('btnDelPrecinto2').classList.add('hidden');
+    document.getElementById('btnDelGuia').classList.add('hidden');
+
+    // Resetear tracker de fotos borradas
+    _fotosBorradas = { fotoPrecinto1: false, fotoPrecinto2: false, fotoGuia: false };
+
+    document.getElementById('lblPrecinto1').classList.remove('has-file');
+    document.getElementById('lblPrecinto1').innerHTML = '<span class="camera-icon">📷</span>TOMAR FOTO O ELEGIR DE GALERIA';
+    document.getElementById('lblPrecinto2').classList.remove('has-file');
+    document.getElementById('lblPrecinto2').innerHTML = '<span class="camera-icon">📷</span>TOMAR FOTO O ELEGIR DE GALERIA';
+    document.getElementById('lblGuiaFoto').classList.remove('has-file');
+    document.getElementById('lblGuiaFoto').innerHTML = '<span class="camera-icon">📄</span>ESCANEAR / ADJUNTAR GUIA O ELEGIR DE GALERIA';
+
+    document.getElementById('editBanner').style.display = 'none';
+    document.getElementById('cardTitle').innerHTML = '📝 Nuevo Registro';
+    document.getElementById('formCard').style.border = '';
+    document.getElementById('formCard').style.boxShadow = '';
+
+    document.getElementById('tipoVehiculo').value = '';
+    actualizarTextos('');
+    document.getElementById('lblProcedenciaDestino').textContent = 'Procedencia / Destino';
+}
+
+// 🔧 Bandera para no re-leer/re-renderizar el historial completo si
+// no ha cambiado desde la última vez (evita trabajo repetido e
+// innecesario cada vez que se toca la pestaña en gama baja).
+window._historialSucio = true;
+function marcarHistorialSucio() { window._historialSucio = true; }
+
+async function cargarRegistros(forzar) {
+    if (!forzar && !window._historialSucio) return;
+    const regs = await obtenerRegistros();
+    renderizarTabla(regs);
+    window._historialSucio = false;
+}
+
+function renderizarTabla(regs) {
+    const tbody = document.getElementById('tbodyRegistros');
+    if (regs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="17" class="empty-state">No hay registros guardados</td></tr>';
+        return;
+    }
+    tbody.innerHTML = regs.map(function(r, i) {
+        const fotos = [];
+        if (r.fotoPrecinto1) fotos.push({src: r.fotoPrecinto1, label: 'P1'});
+        if (r.fotoPrecinto2) fotos.push({src: r.fotoPrecinto2, label: 'P2'});
+        if (r.fotoGuia) {
+            const isPdf = r.fotoGuia.indexOf('data:application/pdf') >= 0 || r.fotoGuia.indexOf('pdf') >= 0;
+            fotos.push({src: r.fotoGuia, label: isPdf ? 'PDF' : 'G'});
+        }
+        let fotosHtml = '<span style="color:#999">-</span>';
+        if (fotos.length > 0) {
+            fotosHtml = fotos.map(function(f) {
+                if (f.label === 'PDF') {
+                    return '<span style="display:inline-block;padding:4px 8px;background:#c62828;color:#fff;border-radius:4px;font-size:0.7rem;font-weight:bold;cursor:pointer" onclick="event.stopPropagation();verImagen(\'' + f.src + '\')" title="PDF">PDF</span>';
+                }
+                return '<img src="' + f.src + '" class="img-thumb" onclick="event.stopPropagation();verImagen(\'' + f.src + '\')" title="' + f.label + '">';
+            }).join(' ');
+        }
+        const badge = r.tipo === 'INGRESO' ? 'badge-ingreso' : 'badge-salida';
+        const descMat = r.descMateriales ? (r.descMateriales.substring(0, 25) + (r.descMateriales.length > 25 ? '...' : '')) : '-';
+        const placa2 = r.segundaPlaca === 'SI' ? r.placa2 : '-';
+        // 🔧 NUEVO: Mostrar "SIN PLACA" si aplica
+        const placaDisplay = r.sinPlaca === 'SI' ? '<span style="color:#999;font-style:italic">SIN PLACA</span>' : '<strong>' + r.placa + '</strong>';
+        return '<tr onclick="verDetalle(' + r.id + ')"><td>' + (i + 1) + '</td><td>' + r.fecha + '</td><td>' + r.hora + '</td><td><span class="badge ' + badge + '">' + r.tipo + '</span></td><td>' + placaDisplay + '</td><td>' + placa2 + '</td><td>' + (r.tipoVehiculo || '-') + '</td><td>' + r.conductor + '</td><td>' + r.empresa + '</td><td>' + r.procedenciaDestino + '</td><td>' + r.materiales + '</td><td title="' + (r.descMateriales || '') + '">' + descMat + '</td><td>' + r.precintos + '</td><td>' + r.guia + '</td><td>' + r.acompanantes + '</td><td>' + fotosHtml + '</td><td><button class="btn" style="padding:6px 16px;font-size:0.85rem;background:var(--primary);color:#fff" onclick="event.stopPropagation();abrirModalEditar(' + r.id + ')">✏️ EDITAR</button></td></tr>';
+    }).join('');
+}
+
+function verImagen(src) {
+    document.getElementById('imgViewerSrc').src = src;
+    document.getElementById('imgViewer').classList.add('active');
+}
+
+async function verDetalle(id) {
+    try {
+        window._detalleIdActual = id;
+        const r = await obtenerRegistro(id);
+        if (!r) return;
+        const cont = document.getElementById('detalleContenido');
+        const tipoClass = r.tipo === 'INGRESO' ? 'detail-badge-ingreso' : 'detail-badge-salida';
+        const placa2 = r.segundaPlaca === 'SI' ? (r.placa2 || '-') : 'NO APLICA';
+        // 🔧 NUEVO: Mostrar "SIN PLACA" en detalle
+        const placaDisplay = r.sinPlaca === 'SI' ? '<span style="color:#999;font-style:italic">SIN PLACA</span>' : (r.placa || '-');
+        
+        let fotosHtml = '';
+        if (r.fotoPrecinto1) {
+            fotosHtml += '<img src="' + r.fotoPrecinto1 + '" class="detail-photo" onclick="verImagen(\'' + r.fotoPrecinto1 + '\')">';
+        }
+        if (r.fotoPrecinto2) {
+            fotosHtml += '<img src="' + r.fotoPrecinto2 + '" class="detail-photo" onclick="verImagen(\'' + r.fotoPrecinto2 + '\')">';
+        }
+        if (r.fotoGuia) {
+            const isPdf = r.fotoGuia.indexOf('data:application/pdf') >= 0 || r.fotoGuia.indexOf('pdf') >= 0;
+            if (isPdf) {
+                fotosHtml += '<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI2MzMjgyOCI+PHBhdGggZD0iTTE0IDJINmMtMS4xIDAtMiAuOS0yIDJ2MTZjMCAxLjEuOSAyIDIgMmgxMmMxLjEgMCAyLS45IDItMlY4bC02LTZ6bTQuNSAxOC41aC0xM1YzaDExbDQuNSA0LjV2MTMuNXpNMTQgM1Y5aDZ6Ii8+PHBhdGggZD0iTTE2LjUgMTEuNWgtOWwuNSAzaDhsLS41LTN6IiBmaWxsPSIjZmZmIi8+PC9zdmc+" class="detail-photo pdf-thumb" onclick="verImagen(\'' + r.fotoGuia + '\')" title="PDF">';
+            } else {
+                fotosHtml += '<img src="' + r.fotoGuia + '" class="detail-photo" onclick="verImagen(\'' + r.fotoGuia + '\')">';
+            }
+        }
+
+        cont.innerHTML = 
+            '<div class="detail-grid">' +
+            '<div class="detail-item"><div class="detail-label">Fecha</div><div class="detail-value">' + (r.fecha || '-') + '</div></div>' +
+            '<div class="detail-item"><div class="detail-label">Hora</div><div class="detail-value">' + (r.hora || '-') + '</div></div>' +
+            '</div>' +
+            '<div style="margin:12px 0"><span class="' + tipoClass + '">' + (r.tipo || '-') + '</span></div>' +
+            '<div class="detail-grid">' +
+            '<div class="detail-item"><div class="detail-label">Placa</div><div class="detail-value">' + placaDisplay + '</div></div>' +
+            '<div class="detail-item"><div class="detail-label">Segunda Placa</div><div class="detail-value">' + placa2 + '</div></div>' +
+            '<div class="detail-item"><div class="detail-label">Tipo de Vehiculo</div><div class="detail-value">' + (r.tipoVehiculo || '-') + '</div></div>' +
+            '<div class="detail-item"><div class="detail-label">Conductor</div><div class="detail-value">' + (r.conductor || '-') + '</div></div>' +
+            '<div class="detail-item"><div class="detail-label">Empresa</div><div class="detail-value">' + (r.empresa || '-') + '</div></div>' +
+            '<div class="detail-item" style="grid-column:1/-1"><div class="detail-label">' + (r.tipo === 'INGRESO' ? 'Procedencia' : 'Destino') + '</div><div class="detail-value">' + (r.procedenciaDestino || '-') + '</div></div>' +
+            '</div>' +
+            '<div class="detail-section-title">📦 Materiales y Documentación</div>' +
+            '<div class="detail-grid">' +
+            '<div class="detail-item"><div class="detail-label">¿Materiales?</div><div class="detail-value">' + (r.materiales || '-') + '</div></div>' +
+            '<div class="detail-item"><div class="detail-label">¿Precintos?</div><div class="detail-value">' + (r.precintos || '-') + '</div></div>' +
+            '<div class="detail-item"><div class="detail-label">¿Guía?</div><div class="detail-value">' + (r.guia || '-') + '</div></div>' +
+            '<div class="detail-item"><div class="detail-label">¿Acompañantes?</div><div class="detail-value">' + (r.acompanantes || '-') + '</div></div>' +
+            '</div>' +
+            (r.descMateriales ? '<div style="margin-top:12px"><div class="detail-label">Descripción de Materiales</div><div class="detail-value" style="font-weight:500;white-space:pre-wrap">' + r.descMateriales + '</div></div>' : '') +
+            (r.personasAcompanantes ? '<div style="margin-top:12px"><div class="detail-label">Personas Acompañantes</div><div class="detail-value" style="font-weight:500;white-space:pre-wrap">' + r.personasAcompanantes + '</div></div>' : '') +
+            (r.observaciones ? '<div style="margin-top:12px"><div class="detail-label">Observaciones</div><div class="detail-value" style="font-weight:500;white-space:pre-wrap">' + r.observaciones + '</div></div>' : '') +
+            (fotosHtml ? '<div class="detail-section-title">📷 Fotos Adjuntas</div><div class="detail-photos">' + fotosHtml + '</div>' : '') +
+            '<div style="height:40px"></div>';
+        
+        document.getElementById('modalDetalle').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    } catch (err) {
+        console.error('Error detalle:', err);
+    }
+}
+
+function cerrarDetalle() {
+    document.getElementById('modalDetalle').classList.remove('active');
+    document.body.style.overflow = '';
+    window._detalleIdActual = null;
+}
+
+function cerrarApp() {
+    if (!window.confirm('¿Está seguro de que desea cerrar la aplicación?')) return;
+    
+    // Intento 1: cerrar ventana/pestaña (funciona solo si fue abierta por script)
+    window.close();
+    
+    // Intento 2: truco para navegadores que permiten cerrar la pestaña actual
+    try {
+        window.open('', '_self').close();
+    } catch(e) {}
+    
+    // Verificar si la ventana sigue abierta después de 600ms
+    setTimeout(function() {
+        if (!window.closed) {
+            // Detectar si es  instalada (standalone)
+            const esPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                          window.navigator.standalone === true;
+            
+            if (esPWA) {
+                mostrarPantallaCierrePWA();
+            } else {
+                mostrarToast('⚠️ El navegador bloqueó el cierre. Cierre la pestaña manualmente.');
+            }
+        }
+    }, 600);
+}
+
+function mostrarPantallaCierrePWA() {
+    // Crear overlay fullscreen que bloquea toda la interfaz
+    var overlay = document.createElement('div');
+    overlay.id = 'pantallaCierrePWA';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#1a237e 0%,#3949ab 100%);z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:30px;font-family:Segoe UI,system-ui,sans-serif;';
+    overlay.innerHTML = 
+        '<div style="font-size:4rem;margin-bottom:20px">🔒</div>' +
+        '<h2 style="font-size:1.5rem;margin-bottom:12px">Aplicación pausada</h2>' +
+        '<p style="max-width:320px;opacity:0.9;line-height:1.5;font-size:1rem">' +
+        'Para salir completamente, deslice hacia arriba desde la parte inferior de la pantalla y cierre esta aplicación desde la multitarea de su dispositivo.' +
+        '</p>' +
+        '<button onclick="location.reload()" style="margin-top:35px;padding:14px 28px;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.15);color:#fff;border-radius:30px;cursor:pointer;font-size:1rem;font-weight:600">↻ Reabrir aplicación</button>';
+    
+    document.body.appendChild(overlay);
+    document.body.style.overflow = 'hidden';
+    
+    // Limpiar cualquier toast previo
+    const toast = document.getElementById('toast');
+    if (toast) toast.classList.remove('show');
+}
+
+async function filtrarRegistros() {
+    const placa = document.getElementById('searchPlaca').value.toUpperCase();
+    const conductor = document.getElementById('searchConductor').value.toUpperCase();
+    const fecha = document.getElementById('searchFecha').value;
+    let regs = await obtenerRegistros();
+    if (placa) regs = regs.filter(function(r) { return r.placa.indexOf(placa) >= 0 || (r.placa2 && r.placa2.indexOf(placa) >= 0); });
+    if (conductor) regs = regs.filter(function(r) { return r.conductor.indexOf(conductor) >= 0; });
+    if (fecha) regs = regs.filter(function(r) { return r.fecha === fecha; });
+    renderizarTabla(regs);
+}
+
+function limpiarFiltros() {
+    document.getElementById('searchPlaca').value = '';
+    document.getElementById('searchConductor').value = '';
+    document.getElementById('searchFecha').value = '';
+    cargarRegistros(true);
+}
+
+function abrirModalEditar(id) {
+    pendingId = id;
+    document.getElementById('modalClave').classList.add('active');
+    document.getElementById('inputClave').value = '';
+    setTimeout(function() {
+        document.getElementById('inputClave').focus();
+        document.getElementById('inputClave').click();
+    }, 300);
+}
+
+function cerrarModal() {
+    document.getElementById('modalClave').classList.remove('active');
+    document.getElementById('errorClave').style.display = 'none';
+    const inp = document.getElementById('inputClave');
+    inp.style.borderColor = '';
+    inp.style.background = '';
+    inp.style.animation = '';
+    pendingId = null;
+}
+
+async function verificarClave() {
+    const clave = document.getElementById('inputClave').value;
+    if (clave !== '0000') {
+        const inp = document.getElementById('inputClave');
+        const err = document.getElementById('errorClave');
+        err.style.display = 'block';
+        inp.style.borderColor = '#c62828';
+        inp.style.background = '#ffebee';
+        inp.style.animation = 'none';
+        inp.offsetHeight;
+        inp.style.animation = 'shakeClave 0.4s ease';
+        inp.value = '';
+        setTimeout(function() { inp.focus(); }, 100);
+        return;
+    }
+    document.getElementById('errorClave').style.display = 'none';
+    const idParaEditar = pendingId;
+    cerrarModal();
+    if (idParaEditar) {
+        mostrarToast('⏳ Cargando...');
+        await editarRegistro(idParaEditar);
+    }
+}
+
+async function editarRegistro(id) {
+    try {
+        const r = await obtenerRegistro(id);
+        if (!r) {
+            mostrarToast('❌ Registro no encontrado');
+            return;
+        }
+
+        document.getElementById('editId').value = r.id;
+        document.getElementById('fecha').value = r.fecha;
+        document.getElementById('hora').value = r.hora;
+        // Resetear tracker de fotos borradas al iniciar edición
+        _fotosBorradas = { fotoPrecinto1: false, fotoPrecinto2: false, fotoGuia: false };
+        document.getElementById('placa').value = r.placa || '';
+        document.getElementById('conductor').value = r.conductor || '';
+        document.getElementById('empresa').value = r.empresa || '';
+        document.getElementById('procedenciaDestino').value = r.procedenciaDestino || '';
+        document.getElementById('observaciones').value = r.observaciones || '';
+        document.getElementById('personasAcompanantes').value = r.personasAcompanantes || '';
+        document.getElementById('descMateriales').value = r.descMateriales || '';
+        document.getElementById('placa2').value = r.placa2 || '';
+        document.getElementById('tipoVehiculo').value = r.tipoVehiculo || '';
+
+        // 🔧 NUEVO: Restaurar estado de "sin placa"
+        if (r.sinPlaca === 'SI') {
+            document.getElementById('sinPlaca').checked = true;
+            mostrarPlacas(false);
+        } else {
+            document.getElementById('sinPlaca').checked = false;
+            mostrarPlacas(true);
+        }
+
+        if (r.tipo === 'INGRESO') document.getElementById('tipoIngreso').checked = true;
+        else document.getElementById('tipoSalida').checked = true;
+        actualizarTextos(r.tipo);
+
+        if (r.segundaPlaca === 'SI') {
+            document.getElementById('segPlacaSi').checked = true;
+            mostrarSegundaPlaca(true);
+        } else {
+            document.getElementById('segPlacaNo').checked = true;
+            mostrarSegundaPlaca(false);
+        }
+
+        if (r.materiales === 'SI') {
+            document.getElementById('matSi').checked = true;
+            mostrarMateriales(true);
+        } else {
+            document.getElementById('matNo').checked = true;
+            mostrarMateriales(false);
+        }
+
+        if (r.precintos === 'SI') {
+            document.getElementById('precSi').checked = true;
+            mostrarPrecintos(true);
+        } else {
+            document.getElementById('precNo').checked = true;
+            mostrarPrecintos(false);
+        }
+
+        if (r.fotoPrecinto1) {
+            document.getElementById('previewPrecinto1').src = r.fotoPrecinto1;
+            document.getElementById('previewPrecinto1').classList.remove('hidden');
+            document.getElementById('lblPrecinto1').classList.add('has-file');
+            document.getElementById('lblPrecinto1').innerHTML = '<span class="camera-icon">✅</span>FOTO CARGADA';
+            document.getElementById('btnDelPrecinto1').classList.remove('hidden');
+        } else {
+            document.getElementById('previewPrecinto1').classList.add('hidden');
+            document.getElementById('previewPrecinto1').src = '';
+            document.getElementById('lblPrecinto1').classList.remove('has-file');
+            document.getElementById('lblPrecinto1').innerHTML = '<span class="camera-icon">📷</span>TOMAR FOTO O ELEGIR DE GALERIA';
+            document.getElementById('btnDelPrecinto1').classList.add('hidden');
+        }
+        if (r.fotoPrecinto2) {
+            document.getElementById('previewPrecinto2').src = r.fotoPrecinto2;
+            document.getElementById('previewPrecinto2').classList.remove('hidden');
+            document.getElementById('lblPrecinto2').classList.add('has-file');
+            document.getElementById('lblPrecinto2').innerHTML = '<span class="camera-icon">✅</span>FOTO CARGADA';
+            document.getElementById('btnDelPrecinto2').classList.remove('hidden');
+        } else {
+            document.getElementById('previewPrecinto2').classList.add('hidden');
+            document.getElementById('previewPrecinto2').src = '';
+            document.getElementById('lblPrecinto2').classList.remove('has-file');
+            document.getElementById('lblPrecinto2').innerHTML = '<span class="camera-icon">📷</span>TOMAR FOTO O ELEGIR DE GALERIA';
+            document.getElementById('btnDelPrecinto2').classList.add('hidden');
+        }
+
+        if (r.guia === 'SI') {
+            document.getElementById('guiaSi').checked = true;
+            mostrarGuia(true);
+        } else {
+            document.getElementById('guiaNo').checked = true;
+            mostrarGuia(false);
+        }
+        if (r.fotoGuia) {
+            document.getElementById('previewGuia').src = r.fotoGuia;
+            document.getElementById('previewGuia').classList.remove('hidden');
+            document.getElementById('lblGuiaFoto').classList.add('has-file');
+            document.getElementById('lblGuiaFoto').innerHTML = '<span class="camera-icon">✅</span>GUIA ADJUNTADA';
+            document.getElementById('btnDelGuia').classList.remove('hidden');
+        } else {
+            document.getElementById('previewGuia').classList.add('hidden');
+            document.getElementById('previewGuia').src = '';
+            document.getElementById('lblGuiaFoto').classList.remove('has-file');
+            document.getElementById('lblGuiaFoto').innerHTML = '<span class="camera-icon">📄</span>ESCANEAR / ADJUNTAR GUIA O ELEGIR DE GALERIA';
+            document.getElementById('btnDelGuia').classList.add('hidden');
+        }
+
+        if (r.acompanantes === 'SI') {
+            document.getElementById('acompSi').checked = true;
+            mostrarAcompanantes(true);
+        } else {
+            document.getElementById('acompNo').checked = true;
+            mostrarAcompanantes(false);
+        }
+
+        document.getElementById('btnGuardar').innerHTML = '<span>💾</span> ACTUALIZAR REGISTRO';
+        document.getElementById('btnCancelar').style.display = 'inline-flex';
+
+        document.getElementById('editBanner').style.display = 'flex';
+        document.getElementById('cardTitle').innerHTML = '✏️ Editando Registro #' + r.id;
+        document.getElementById('editBannerSub').textContent = 'Placa: ' + (r.placa || 'SIN PLACA') + ' | ' + (r.tipoVehiculo || '-') + ' | ' + r.conductor + ' — Modifique y presione ACTUALIZAR REGISTRO';
+        document.getElementById('formCard').style.border = '2px solid #ff6f00';
+        document.getElementById('formCard').style.boxShadow = '0 4px 20px rgba(255,111,0,0.25)';
+
+        mostrarToast('✏️ Registro #' + r.id + ' cargado para editar');
+        window.scrollTo({top: 0, behavior: 'smooth'});
+    } catch (err) {
+        console.error('Error editar:', err);
+        mostrarToast('❌ Error: ' + err.message);
+    }
+}
+
+function resaltarFila(id) {
+    const filas = document.querySelectorAll('#tbodyRegistros tr');
+    filas.forEach(function(fila) {
+        const btnEditar = fila.querySelector('button[onclick*="abrirModalEditar(' + id + ')"]');
+        if (btnEditar) {
+            fila.style.transition = 'background 0.3s';
+            fila.style.background = '#fff8e1';
+            fila.style.outline = '2px solid #ff6f00';
+            setTimeout(function() {
+                fila.style.background = '';
+                fila.style.outline = '';
+            }, 3000);
+        }
+    });
+}
+
+async function actualizarStats() {
+    const regs = await obtenerRegistros();
+    const hoy = getFechaLocal();
+    document.getElementById('statTotal').textContent = regs.length;
+    document.getElementById('statIngresos').textContent = regs.filter(function(r) { return r.fecha === hoy && r.tipo === 'INGRESO'; }).length;
+    document.getElementById('statSalidas').textContent = regs.filter(function(r) { return r.fecha === hoy && r.tipo === 'SALIDA'; }).length;
+}
+
+async function exportarExcel() {
+    const regs = await obtenerRegistros();
+    if (regs.length === 0) { mostrarToast('❌ No hay registros'); return; }
+    const data = regs.map(function(r) {
+        return {
+            'FECHA': r.fecha,
+            'HORA': r.hora,
+            'TIPO': r.tipo,
+            'PLACA': r.sinPlaca === 'SI' ? 'SIN PLACA' : r.placa,
+            'SEGUNDA PLACA': r.segundaPlaca === 'SI' ? (r.placa2 || '') : 'NO',
+            'TIPO VEHICULO': r.tipoVehiculo || '',
+            'CONDUCTOR': r.conductor || '',
+            'EMPRESA': r.empresa || '',
+            'PROCEDENCIA/DESTINO': r.procedenciaDestino || '',
+            'MATERIALES': r.materiales || '',
+            'DESCRIPCION MATERIALES': r.descMateriales || '',
+            'PRECINTOS': r.precintos || '',
+            'GUIA': r.guia || '',
+            'ACOMPANANTES': r.acompanantes || '',
+            'PERSONAS ACOMPANANTES': r.personasAcompanantes || '',
+            'OBSERVACIONES': r.observaciones || ''
+        };
+    });
+    try {
+        const ws = XLSX.utils.json_to_sheet(data);
+        const colWidths = [10,8,10,12,12,14,28,22,22,12,28,10,8,12,30,35];
+        ws['!cols'] = colWidths.map(function(w){ return {wch: w}; });
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Registros');
+        const wbout = XLSX.write(wb, {bookType: 'xlsx', type: 'array'});
+        const blob = new Blob([wbout], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+        const nombreArchivo = 'Registro_Vehicular_' + getFechaLocal() + '.xlsx';
+        window._shareBlob = blob;
+        window._shareNombre = nombreArchivo;
+        window._shareTipo = 'excel';
+        window._shareMime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+        window._shareTexto = 'Registro Vehicular - ' + regs.length + ' registros\n' + new Date().toLocaleDateString('es-ES');
+        abrirModalCompartir('📊', 'Excel generado', regs.length + ' registros — ' + nombreArchivo, true);
+    } catch(e) {
+        mostrarToast('❌ Error al generar Excel: ' + e.message);
+    }
+}
+
+var PDF_COLS = {
+    tipoVehiculo:        {label: 'TIPO VEH.',    fn: function(r){ return r.tipoVehiculo || '-'; }},
+    fecha:               {label: 'FECHA',        fn: function(r){ return r.fecha || '-'; }},
+    hora:                {label: 'HORA',         fn: function(r){ return r.hora || '-'; }},
+    tipo:                {label: 'TIPO',         fn: function(r){ return r.tipo || '-'; }},
+    placa:               {label: 'PLACA',        fn: function(r){ return r.sinPlaca === 'SI' ? 'SIN PLACA' : (r.placa || '-'); }},
+    placa2:              {label: 'PLACA 2',      fn: function(r){ return r.segundaPlaca === 'SI' ? (r.placa2 || '-') : '-'; }},
+    conductor:           {label: 'CONDUCTOR',    fn: function(r){ return r.conductor || '-'; }},
+    empresa:             {label: 'EMPRESA',      fn: function(r){ return r.empresa || '-'; }},
+    procedenciaDestino:  {label: 'PROC/DEST',    fn: function(r){ return r.procedenciaDestino || '-'; }},
+    materiales:          {label: 'MAT.',         fn: function(r){ return r.materiales || '-'; }},
+    descMateriales:      {label: 'DESC.MAT.',    fn: function(r){ return (r.descMateriales || '-').substring(0,22); }},
+    precintos:           {label: 'PREC.',        fn: function(r){ return r.precintos || '-'; }},
+    guia:                {label: 'GUIA',         fn: function(r){ return r.guia || '-'; }},
+    acompanantes:        {label: 'ACOMP.',       fn: function(r){ return r.acompanantes || '-'; }},
+    personasAcompanantes:{label: 'PERSONAS',     fn: function(r){ return (r.personasAcompanantes || '-').substring(0,22); }},
+    observaciones:       {label: 'OBSERV.',      fn: function(r){ return (r.observaciones || '-').substring(0,30); }}
+};
+
+async function exportarPDF() {
+    const regs = await obtenerRegistros();
+    if (regs.length === 0) { mostrarToast('❌ No hay registros'); return; }
+    const fechas = regs.map(function(r){ return r.fecha; }).filter(Boolean).sort();
+    document.getElementById('pdfFechaDesde').value = fechas[0] || '';
+    document.getElementById('pdfFechaHasta').value = fechas[fechas.length-1] || '';
+    document.getElementById('pdfFiltroConductor').value = '';
+    document.getElementById('pdfFiltroPlaca').value = '';
+    document.querySelector('input[name="pdfTipo"][value="TODOS"]').checked = true;
+    actualizarConteoPDF();
+    document.getElementById('modalPDF').classList.add('active');
+}
+
+async function actualizarConteoPDF() {
+    const regs = await obtenerRegistros();
+    const filtrados = filtrarParaPDF(regs);
+    document.getElementById('pdfConteo').textContent = '📋 Se exportarán ' + filtrados.length + ' registros';
+}
+
+function filtrarParaPDF(regs) {
+    const desde = document.getElementById('pdfFechaDesde').value;
+    const hasta = document.getElementById('pdfFechaHasta').value;
+    const tipo = document.querySelector('input[name="pdfTipo"]:checked').value;
+    const conductor = document.getElementById('pdfFiltroConductor').value.trim().toUpperCase();
+    const placa = document.getElementById('pdfFiltroPlaca').value.trim().toUpperCase();
+    return regs.filter(function(r) {
+        if (desde && r.fecha < desde) return false;
+        if (hasta && r.fecha > hasta) return false;
+        if (tipo !== 'TODOS' && r.tipo !== tipo) return false;
+        if (conductor && (!r.conductor || r.conductor.toUpperCase().indexOf(conductor) < 0)) return false;
+        if (placa && (!r.placa || r.placa.toUpperCase().indexOf(placa) < 0)) return false;
+        return true;
+    });
+}
+
+function cerrarModalPDF() {
+    document.getElementById('modalPDF').classList.remove('active');
+}
+
+async function generarPDFFiltrado() {
+    const regs = await obtenerRegistros();
+    const filtrados = filtrarParaPDF(regs);
+    if (filtrados.length === 0) { mostrarToast('❌ No hay registros con esos filtros'); return; }
+
+    const checks = document.querySelectorAll('#pdfColumnas input[type=checkbox]:checked');
+    if (checks.length === 0) { mostrarToast('❌ Seleccione al menos una columna'); return; }
+    const colKeys = Array.from(checks).map(function(c){ return c.value; });
+
+    cerrarModalPDF();
+
+    const jsPDF = window.jspdf.jsPDF;
+    const doc = new jsPDF({orientation: 'landscape'});
+
+    doc.setFillColor(26, 35, 126);
+    doc.rect(0, 0, 297, 25, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.text('REGISTRO VEHICULAR - CONTROL DE ACCESO', 148, 12, {align: 'center'});
+    doc.setFontSize(9);
+    const desde2 = document.getElementById('pdfFechaDesde').value;
+    const hasta2 = document.getElementById('pdfFechaHasta').value;
+    const tipoLabel = document.querySelector('input[name="pdfTipo"]:checked').value;
+    const subtitulo = 'Periodo: ' + (desde2 || 'inicio') + ' al ' + (hasta2 || 'hoy') + '  |  Tipo: ' + tipoLabel + '  |  Registros: ' + filtrados.length;
+    doc.text(subtitulo, 148, 21, {align: 'center'});
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(8);
+    doc.text('Generado: ' + new Date().toLocaleString('es-ES'), 14, 31);
+    doc.text('Edward Quezada M. — Seguridad Patrimonial', 280, 31, {align: 'right'});
+
+    const headers = colKeys.map(function(k){ return PDF_COLS[k].label; });
+    const body = filtrados.map(function(r) {
+        return colKeys.map(function(k){ return PDF_COLS[k].fn(r); });
+    });
+
+    const baseW = 268 / colKeys.length;
+    const colStyles = {};
+    colKeys.forEach(function(k, i) {
+        var w = baseW;
+        if (k === 'conductor' || k === 'empresa' || k === 'procedenciaDestino') w = baseW * 1.4;
+        if (k === 'descMateriales' || k === 'personasAcompanantes' || k === 'observaciones') w = baseW * 1.5;
+        if (k === 'hora' || k === 'tipo' || k === 'materiales' || k === 'precintos' || k === 'guia' || k === 'acompanantes' || k === 'tipoVehiculo') w = baseW * 0.7;
+        colStyles[i] = {cellWidth: w};
+    });
+
+    doc.autoTable({
+        head: [headers],
+        body: body,
+        startY: 36,
+        styles: {fontSize: colKeys.length > 10 ? 6 : 7, cellPadding: 2, overflow: 'linebreak'},
+        headStyles: {fillColor: [26, 35, 126], textColor: 255, fontStyle: 'bold'},
+        alternateRowStyles: {fillColor: [245, 245, 245]},
+        columnStyles: colStyles
+    });
+
+    const pageCount = doc.internal.getNumberOfPages();
+    for (var i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(7);
+        doc.setTextColor(150);
+        doc.text('Página ' + i + ' de ' + pageCount, 148, doc.internal.pageSize.height - 5, {align: 'center'});
+    }
+
+    const fecha = getFechaLocal();
+    const nombreArchivo = 'Registro_Vehicular_' + tipoLabel + '_' + fecha + '.pdf';
+    const pdfBlob = doc.output('blob');
+    window._shareBlob = pdfBlob;
+    window._shareNombre = nombreArchivo;
+    window._shareTipo = 'pdf';
+    window._shareMime = 'application/pdf';
+    window._shareTexto = 'Registro Vehicular — ' + tipoLabel + '\nPeriodo: ' + (desde2 || 'inicio') + ' al ' + (hasta2 || 'hoy') + '\n' + filtrados.length + ' registros\nGenerado: ' + new Date().toLocaleDateString('es-ES');
+    abrirModalCompartir('📄', 'PDF generado', filtrados.length + ' registros — ' + nombreArchivo, false);
+}
+
+function abrirModalCompartir(icon, titulo, subtitulo, ocultarEmail, esBackup) {
+    document.getElementById('shareIcon').textContent = icon;
+    document.getElementById('shareTitulo').textContent = titulo;
+    document.getElementById('shareSubtitulo').textContent = subtitulo;
+    document.getElementById('btnShareEmail').style.display = ocultarEmail ? 'none' : 'flex';
+    // Mostrar nota explicativa solo en modo backup
+    var extra = document.getElementById('shareSubtituloExtra');
+    if (extra) extra.style.display = esBackup ? 'block' : 'none';
+    document.getElementById('modalCompartir').classList.add('active');
+}
+
+function cerrarModalCompartir() {
+    document.getElementById('modalCompartir').classList.remove('active');
+}
+
+async function shareAccion(accion) {
+    const blob = window._shareBlob;
+    const nombre = window._shareNombre;
+    const mime = window._shareMime;
+    const texto = window._shareTexto || 'Registro Vehicular';
+    const esBackup = window._shareTipo === 'backup';
+
+    // ============================================================
+    // GUARDAR EN DISPOSITIVO
+    // ============================================================
+    if (accion === 'guardar') {
+        // Intento 1: File System Access API (Chrome 86+, Edge)
+        if (window.showSaveFilePicker) {
+            try {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: nombre,
+                    types: [{ description: 'Excel', accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] } }]
+                });
+                const writable = await handle.createWritable();
+                await writable.write(blob);
+                await writable.close();
+                cerrarModalCompartir();
+                mostrarToast('💾 Archivo guardado: ' + nombre);
+                return;
+            } catch(e) {
+                if (e.name === 'AbortError') { return; } // usuario canceló
+            }
+        }
+        // Intento 2: descarga clásica con <a download>
+        try {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = nombre;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+            cerrarModalCompartir();
+            mostrarToast('💾 ' + (esBackup ? 'Respaldo guardado: ' : 'Archivo guardado: ') + nombre);
+            return;
+        } catch(e2) {
+            mostrarToast('❌ No se pudo guardar: ' + e2.message);
+        }
+    }
+
+    // ============================================================
+    // COMPARTIR CON OTRA APP
+    // ============================================================
+    if (accion === 'compartir') {
+        const file = new File([blob], nombre, {type: mime});
+
+        // PASO 1: Intentar compartir archivo adjunto real (navigator.share moderno)
+        if (navigator.share && (!navigator.canShare || navigator.canShare({files: [file]}))) {
+            try {
+                await navigator.share({ title: 'Registro Vehicular', text: texto, files: [file] });
+                cerrarModalCompartir();
+                mostrarToast('✅ Archivo listo para compartir');
+                return;
+            } catch(e) {
+                if (e.name === 'AbortError') { cerrarModalCompartir(); return; }
+                // Falló, continuar al paso 2
+            }
+        }
+
+        // PASO 2: Guardar archivo localmente (múltiples métodos para WebViews)
+        let guardadoOk = false;
+        let url = null;
+        try {
+            url = URL.createObjectURL(blob);
+            // Método A: <a download>
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = nombre;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            guardadoOk = true;
+        } catch(e) {
+            // Método B: window.open (a veces funciona mejor en WebViews)
+            try {
+                if (url) window.open(url, '_blank');
+                guardadoOk = true;
+            } catch(e2) {}
+        }
+        if (!guardadoOk) {
+            mostrarToast('❌ No se pudo guardar el archivo');
+            cerrarModalCompartir();
+            return;
+        }
+        setTimeout(function(){ if(url) URL.revokeObjectURL(url); }, 3000);
+
+        // PASO 3: Abrir selector de apps con texto (navigator.share)
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: 'Registro Vehicular',
+                    text: texto + '\n\n📎 Archivo: ' + nombre + '\n💡 Abra su app (WhatsApp, Telegram, etc.) y adjunte el archivo desde Descargas.'
+                });
+                cerrarModalCompartir();
+                mostrarToast('📲 Seleccione la app y adjunte el archivo guardado');
+                return;
+            } catch(e) {
+                if (e.name === 'AbortError') { cerrarModalCompartir(); return; }
+                // navigator.share existe pero no abrió selector, continuar
+            }
+        }
+
+        // PASO 4: Fallback final — instrucciones manuales
+        cerrarModalCompartir();
+        mostrarToast('💾 Archivo guardado en Descargas. Ábralo desde WhatsApp/Telegram para enviarlo.');
+        return;
+    }
+
+    // ============================================================
+    // ENVIAR POR EMAIL
+    // ============================================================
+    if (accion === 'email') {
+        try {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = nombre;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+        } catch(e) {}
+        const asunto = encodeURIComponent('Registro Vehicular — ' + nombre);
+        const cuerpo = encodeURIComponent(texto + '\n\nArchivo adjunto: ' + nombre + '\n(Adjunte el archivo descargado a este email)');
+        setTimeout(function() {
+            window.location.href = 'mailto:?subject=' + asunto + '&body=' + cuerpo;
+        }, 800);
+        cerrarModalCompartir();
+        mostrarToast('✉️ Adjunte el archivo descargado al email');
+    }
+}
+
+function compartirFallback(nombre, texto) {
+    // Guardar archivo
+    let url = null;
+    let guardadoOk = false;
+    try {
+        url = URL.createObjectURL(window._shareBlob);
+        const a = document.createElement('a');
+        a.href = url; a.download = nombre;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        guardadoOk = true;
+    } catch(e) {
+        try { if(url) window.open(url, '_blank'); guardadoOk = true; } catch(e2){}
+    }
+    if (!guardadoOk) {
+        mostrarToast('❌ No se pudo guardar el archivo');
+        cerrarModalCompartir();
+        return;
+    }
+    setTimeout(function(){ if(url) URL.revokeObjectURL(url); }, 3000);
+
+    // Intentar abrir selector de apps
+    if (navigator.share) {
+        try {
+            navigator.share({
+                title: 'Registro Vehicular',
+                text: texto + '\n\n📎 Archivo: ' + nombre + '\n💡 Abra su app y adjunte el archivo desde Descargas.'
+            });
+            mostrarToast('📲 Seleccione la app y adjunte el archivo guardado');
+            return;
+        } catch(e) {}
+    }
+    mostrarToast('💾 Archivo guardado en Descargas. Ábralo desde su app favorita para enviarlo.');
+    cerrarModalCompartir();
+}
+
+// Mantener compatibilidad con llamadas antiguas
+function compartirWhatsAppFallback(nombre, texto) { compartirFallback(nombre, texto); }
+
+// 🗑️ BORRAR FOTO en modo edición
+var _fotosBorradas = { fotoPrecinto1: false, fotoPrecinto2: false, fotoGuia: false };
+
+function borrarFoto(inputId, previewId, labelId, btnId, icono, textoDefault) {
+    if (!window.confirm('¿Está seguro de borrar esta foto/imagen? Se eliminará al guardar.')) return;
+    // Limpiar el input de archivo
+    var inp = document.getElementById(inputId);
+    inp.value = '';
+    // Ocultar preview
+    var pre = document.getElementById(previewId);
+    pre.src = '';
+    pre.classList.add('hidden');
+    // Restaurar etiqueta
+    var lbl = document.getElementById(labelId);
+    lbl.classList.remove('has-file');
+    lbl.innerHTML = '<span class="camera-icon">' + icono + '</span>' + textoDefault;
+    // Ocultar botón de borrar
+    document.getElementById(btnId).classList.add('hidden');
+    // Marcar como borrada para que procesarFormulario no restaure la foto original
+    _fotosBorradas[inputId] = true;
+    mostrarToast('🗑️ Foto marcada para eliminar al guardar');
+}
+
+// 🔧 NUEVO: Reloj en vivo para que la hora no se congele
+function iniciarRelojEnVivo() {
+    setInterval(function() {
+        // Solo actualizar si NO estamos en modo edición
+        const editId = document.getElementById('editId').value;
+        if (editId) return;
+
+        const ahora = new Date();
+        const horaInput = document.getElementById('hora');
+        const fechaInput = document.getElementById('fecha');
+
+        horaInput.value = ahora.toTimeString().slice(0, 5);
+
+        const nuevaFecha = getFechaLocal(ahora);
+        if (fechaInput.value !== nuevaFecha) {
+            fechaInput.value = nuevaFecha;
+        }
+    }, 30000); // Cada 30 segundos
+}
+
+// ===== SISTEMA DE PESTAÑAS =====
+function switchTab(tabId, btn) {
+    // 1) Cambio visual inmediato: solo clases CSS, sin tocar datos.
+    //    Esto es lo que el usuario percibe como "tocar la pestaña",
+    //    así que debe pintarse en el siguiente frame sin esperar nada.
+    document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.getElementById(tabId).classList.add('active');
+    btn.classList.add('active');
+
+    // 2) El trabajo pesado (leer IndexedDB, reconstruir la tabla con
+    //    fotos, calcular estadísticas) se difiere al siguiente frame
+    //    para no competir con el repintado del cambio de pestaña.
+    //    En CPUs de gama baja esto es lo que evita el "congelamiento".
+    if (tabId === 'tab-dashboard') {
+        requestAnimationFrame(function() { actualizarStats(); });
+    } else if (tabId === 'tab-history') {
+        requestAnimationFrame(function() { cargarRegistros(); });
+    }
+}
+
+
+async function imprimirRegistros() {
+    const regs = await obtenerRegistros();
+    if (regs.length === 0) {
+        mostrarToast('❌ No hay registros para imprimir');
+        return;
+    }
+    const hoy = new Date().toLocaleDateString('es-ES');
+    let filas = '';
+    regs.forEach(function(r, i) {
+        const badgeColor = r.tipo === 'INGRESO' ? '#2e7d32' : '#e65100';
+        const badgeBg = r.tipo === 'INGRESO' ? '#e8f5e9' : '#fff3e0';
+        const placaDisplay = r.sinPlaca === 'SI' ? '<em style="color:#999">SIN PLACA</em>' : (r.placa || '-');
+        filas += '<tr style="border-bottom:1px solid #ddd">' +
+            '<td style="padding:8px;font-size:0.8rem">' + (i+1) + '</td>' +
+            '<td style="padding:8px;font-size:0.8rem">' + (r.fecha || '-') + '</td>' +
+            '<td style="padding:8px;font-size:0.8rem">' + (r.hora || '-') + '</td>' +
+            '<td style="padding:8px;font-size:0.8rem"><span style="display:inline-block;padding:3px 8px;border-radius:12px;font-size:0.7rem;font-weight:bold;background:' + badgeBg + ';color:' + badgeColor + ';border:1px solid currentColor">' + r.tipo + '</span></td>' +
+            '<td style="padding:8px;font-size:0.8rem">' + placaDisplay + '</td>' +
+            '<td style="padding:8px;font-size:0.8rem">' + (r.tipoVehiculo || '-') + '</td>' +
+            '<td style="padding:8px;font-size:0.8rem">' + (r.conductor || '-') + '</td>' +
+            '<td style="padding:8px;font-size:0.8rem">' + (r.empresa || '-') + '</td>' +
+            '<td style="padding:8px;font-size:0.8rem">' + (r.procedenciaDestino || '-') + '</td>' +
+            '<td style="padding:8px;font-size:0.8rem">' + (r.materiales || '-') + '</td>' +
+            '<td style="padding:8px;font-size:0.8rem">' + (r.precintos || '-') + '</td>' +
+            '<td style="padding:8px;font-size:0.8rem">' + (r.guia || '-') + '</td>' +
+            '<td style="padding:8px;font-size:0.8rem">' + (r.acompanantes || '-') + '</td>' +
+            '</tr>';
+    });
+    const html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Registro Vehicular - Impresión</title><style>' +
+        'body{font-family:Segoe UI,Arial,sans-serif;margin:20px;color:#333}' +
+        '.header{text-align:center;margin-bottom:20px;border-bottom:3px solid #1a237e;padding-bottom:15px}' +
+        '.header h1{color:#1a237e;margin:0 0 5px 0;font-size:1.4rem}' +
+        '.header p{margin:0;color:#666;font-size:0.85rem}' +
+        'table{width:100%;border-collapse:collapse;font-size:0.85rem;margin-top:15px}' +
+        'th{background:#1a237e;color:#fff;padding:10px 8px;text-align:left;font-size:0.75rem;text-transform:uppercase}' +
+        'td{padding:8px;border-bottom:1px solid #eee}' +
+        '.footer{margin-top:20px;text-align:center;font-size:0.75rem;color:#999;border-top:1px solid #ddd;padding-top:10px}' +
+        '@media print{.no-print{display:none}}' +
+        '</style></head><body>' +
+        '<div class="header"><h1>🚗 REGISTRO VEHICULAR</h1><p>Control de Ingreso y Salida de Vehículos</p>' +
+        '<p style="font-size:0.8rem;color:#555;margin-top:5px">Fecha de impresión: ' + hoy + ' | Total: ' + regs.length + ' registros</p></div>' +
+        '<div style="text-align:center;margin-bottom:15px"><button class="no-print" onclick="window.print()" style="padding:12px 24px;background:#1a237e;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;font-weight:bold">🖨️ Imprimir / Guardar como PDF</button></div>' +
+        '<table><thead><tr><th>#</th><th>Fecha</th><th>Hora</th><th>Tipo</th><th>Placa</th><th>Vehículo</th><th>Conductor</th><th>Empresa</th><th>Proc/Dest</th><th>Mat.</th><th>Prec.</th><th>Guía</th><th>Acomp.</th></tr></thead><tbody>' + filas + '</tbody></table>' +
+        '<div class="footer"><p>Desarrollado por <strong>Edward Quezada M.</strong> — Seguridad Patrimonial</p><p>© 2026 - Todos los derechos reservados</p></div>' +
+        '<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print();},600);};</scr' + 'ipt>' +
+        '</body></html>';
+    const blob = new Blob([html], {type: 'text/html'});
+    const url = URL.createObjectURL(blob);
+    const ventana = window.open(url, '_blank');
+    if (!ventana) {
+        mostrarToast('⚠️ Ventana bloqueada. Permita pop-ups o use Exportar PDF.');
+    } else {
+        mostrarToast('🖨️ Ventana de impresión abierta');
+    }
+    setTimeout(function() { URL.revokeObjectURL(url); }, 15000);
+}
+
+async function compartirResumenGeneral() {
+    const regs = await obtenerRegistros();
+    if (regs.length === 0) {
+        mostrarToast('❌ No hay registros para compartir');
+        return;
+    }
+    const hoy = getFechaLocal();
+    const ingresosHoy = regs.filter(function(r){ return r.fecha === hoy && r.tipo === 'INGRESO'; }).length;
+    const salidasHoy = regs.filter(function(r){ return r.fecha === hoy && r.tipo === 'SALIDA'; }).length;
+    const ultimos = regs.slice(0, 5);
+    let ultimosTxt = '';
+    ultimos.forEach(function(r) {
+        const placa = r.sinPlaca === 'SI' ? 'SIN PLACA' : (r.placa || '-');
+        ultimosTxt += '• ' + r.fecha + ' ' + r.hora + ' | ' + r.tipo + ' | ' + placa + ' | ' + (r.conductor || '-') + '\n';
+    });
+    const texto = '🚗 *REGISTRO VEHICULAR — RESUMEN*\n\n' +
+        '📅 Fecha: ' + new Date().toLocaleDateString('es-ES') + '\n' +
+        '📊 Total registros: ' + regs.length + '\n' +
+        '📥 Ingresos hoy: ' + ingresosHoy + '\n' +
+        '📤 Salidas hoy: ' + salidasHoy + '\n\n' +
+        '*Últimos registros:*\n' + ultimosTxt + '\n' +
+        '_Generado desde Registro Vehicular App_';
+
+    // 1. Web Share API (HTTPS / localhost — abre cajón nativo si el contexto lo permite)
+    if (navigator.share) {
+        try {
+            await navigator.share({ title: 'Resumen Registro Vehicular', text: texto });
+            mostrarToast('✅ Resumen compartido');
+            return;
+        } catch(e) {
+            if (e.name === 'AbortError') return;
+            // Falla en file:// → sigue al Intent nativo
+        }
+    }
+
+    // 2. Intent nativo Android: fuerza el cajón de apps
+    //    (WhatsApp, Telegram, Gmail, Drive, Messenger, etc.)
+    const subject = encodeURIComponent('Resumen Registro Vehicular');
+    const body    = encodeURIComponent(texto);
+    const intentUri =
+        'intent:#Intent' +
+        ';action=android.intent.action.SEND' +
+        ';type=text%2Fplain' +
+        ';S.android.intent.extra.SUBJECT=' + subject +
+        ';S.android.intent.extra.TEXT='    + body +
+        ';end';
+
+    // Usamos un <a> invisible para no navegar fuera de la página
+    const anchor = document.createElement('a');
+    anchor.setAttribute('href', intentUri);
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    mostrarToast('📤 Abriendo opciones de compartir...');
+}
+
+// ============================================================
+// IMPRIMIR / PDF DESDE DETALLE (doble-click / solo lectura)
+// ============================================================
+async function imprimirUnicoDesdeDetalle() {
+    if (!window._detalleIdActual) return;
+    const r = await obtenerRegistro(window._detalleIdActual);
+    if (!r) return;
+
+    const placaDisplay = r.sinPlaca === 'SI' ? '<em style="color:#999">SIN PLACA</em>' : (r.placa || '-');
+    const placa2 = r.segundaPlaca === 'SI' ? (r.placa2 || '-') : 'NO APLICA';
+    const tipoClass = r.tipo === 'INGRESO' ? 'detail-badge-ingreso' : 'detail-badge-salida';
+
+    let filas = '';
+    const campos = [
+        ['Fecha', r.fecha || '-'],
+        ['Hora', r.hora || '-'],
+        ['Tipo de Movimiento', '<span class="' + tipoClass + '">' + (r.tipo || '-') + '</span>'],
+        ['Placa', placaDisplay],
+        ['Segunda Placa', placa2],
+        ['Tipo de Vehículo', r.tipoVehiculo || '-'],
+        ['Conductor', r.conductor || '-'],
+        ['Empresa', r.empresa || '-'],
+        [r.tipo === 'INGRESO' ? 'Procedencia' : 'Destino', r.procedenciaDestino || '-'],
+        ['¿Materiales?', r.materiales || '-'],
+        ['Descripción Materiales', r.descMateriales || '-'],
+        ['¿Precintos?', r.precintos || '-'],
+        ['¿Guía?', r.guia || '-'],
+        ['¿Acompañantes?', r.acompanantes || '-'],
+        ['Personas Acompañantes', r.personasAcompanantes || '-'],
+        ['Observaciones', r.observaciones || '-']
+    ];
+
+    campos.forEach(function(c) {
+        if (c[1] === '-' || c[1] === 'NO APLICA') return;
+        filas += '<tr><td style="padding:10px 14px;background:#f5f5f5;font-weight:700;color:#1a237e;width:35%;border:1px solid #ddd">' + c[0] + '</td><td style="padding:10px 14px;border:1px solid #ddd">' + c[1] + '</td></tr>';
+    });
+
+    let fotosHtml = '';
+    if (r.fotoPrecinto1) {
+        fotosHtml += '<div style="margin-bottom:10px"><div style="font-size:0.75rem;color:#666;font-weight:700;margin-bottom:4px">FOTO PRECINTO 1</div><img src="' + r.fotoPrecinto1 + '" style="max-width:100%;max-height:200px;border-radius:8px;border:2px solid #ddd"></div>';
+    }
+    if (r.fotoPrecinto2) {
+        fotosHtml += '<div style="margin-bottom:10px"><div style="font-size:0.75rem;color:#666;font-weight:700;margin-bottom:4px">FOTO PRECINTO 2</div><img src="' + r.fotoPrecinto2 + '" style="max-width:100%;max-height:200px;border-radius:8px;border:2px solid #ddd"></div>';
+    }
+    if (r.fotoGuia) {
+        const isPdf = r.fotoGuia.indexOf('data:application/pdf') >= 0 || r.fotoGuia.indexOf('pdf') >= 0;
+        if (isPdf) {
+            fotosHtml += '<div style="margin-bottom:10px"><div style="font-size:0.75rem;color:#666;font-weight:700;margin-bottom:4px">GUÍA (PDF)</div><div style="padding:20px;background:#ffebee;border-radius:8px;text-align:center;color:#c62828;font-weight:700">📄 PDF ADJUNTO<br><span style="font-size:0.8rem;font-weight:500">Disponible en la app</span></div></div>';
+        } else {
+            fotosHtml += '<div style="margin-bottom:10px"><div style="font-size:0.75rem;color:#666;font-weight:700;margin-bottom:4px">GUÍA</div><img src="' + r.fotoGuia + '" style="max-width:100%;max-height:200px;border-radius:8px;border:2px solid #ddd"></div>';
+        }
+    }
+
+    const htmlContent = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Registro Vehicular - Detalle</title><style>' +
+        'body{font-family:Segoe UI,Arial,sans-serif;margin:20px;color:#333;max-width:700px;margin:20px auto}' +
+        '.header{text-align:center;margin-bottom:20px;border-bottom:3px solid #1a237e;padding-bottom:15px}' +
+        '.header h1{color:#1a237e;margin:0 0 5px 0;font-size:1.4rem}' +
+        '.header p{margin:0;color:#666;font-size:0.85rem}' +
+        'table{width:100%;border-collapse:collapse;font-size:0.9rem;margin-top:15px}' +
+        'td{padding:10px 14px;border:1px solid #ddd}' +
+        '.badge-ingreso{display:inline-block;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;padding:6px 14px;border-radius:20px;font-size:0.85rem;font-weight:800}' +
+        '.badge-salida{display:inline-block;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;padding:6px 14px;border-radius:20px;font-size:0.85rem;font-weight:800}' +
+        '.footer{margin-top:20px;text-align:center;font-size:0.75rem;color:#999;border-top:1px solid #ddd;padding-top:10px}' +
+        '.fotos-section{margin-top:20px;padding-top:15px;border-top:2px solid #eee}' +
+        '.fotos-title{font-size:1rem;color:#1a237e;font-weight:700;margin-bottom:12px}' +
+        '@media print{.no-print{display:none}}' +
+        '</style></head><body>' +
+        '<div class="header"><h1>🚗 REGISTRO VEHICULAR</h1><p>Detalle de Registro #' + r.id + '</p>' +
+        '<p style="font-size:0.8rem;color:#555;margin-top:5px">Fecha de impresión: ' + new Date().toLocaleDateString('es-ES') + '</p></div>' +
+        '<div style="text-align:center;margin-bottom:15px"><button class="no-print" onclick="window.print()" style="padding:12px 24px;background:#1a237e;color:#fff;border:none;border-radius:8px;font-size:1rem;cursor:pointer;font-weight:bold">🖨️ Imprimir / Guardar como PDF</button></div>' +
+        '<table><tbody>' + filas + '</tbody></table>' +
+        (fotosHtml ? '<div class="fotos-section"><div class="fotos-title">📷 Fotos Adjuntas</div>' + fotosHtml + '</div>' : '') +
+        '<div class="footer"><p>Desarrollado por <strong>Edward Quezada M.</strong> — Seguridad Patrimonial</p><p>© 2026 - Todos los derechos reservados</p></div>' +
+        '<scr' + 'ipt>window.onload=function(){setTimeout(function(){window.print();},500);};</scr' + 'ipt>' +
+        '</body></html>';
+
+    const blob = new Blob([htmlContent], {type: 'text/html'});
+    const url = URL.createObjectURL(blob);
+    const ventana = window.open(url, '_blank');
+    if (!ventana) {
+        mostrarToast('⚠️ Ventana bloqueada. Permita pop-ups.');
+    } else {
+        mostrarToast('🖨️ Ventana de impresión abierta');
+    }
+    setTimeout(function() { URL.revokeObjectURL(url); }, 15000);
+}
+
+async function generarPDFUnicoDesdeDetalle() {
+    if (!window._detalleIdActual) return;
+    const r = await obtenerRegistro(window._detalleIdActual);
+    if (!r) return;
+
+    const jsPDF = window.jspdf.jsPDF;
+    const doc = new jsPDF();
+
+    // Header
+    doc.setFillColor(26, 35, 126);
+    doc.rect(0, 0, 210, 28, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.text('REGISTRO VEHICULAR', 105, 12, {align: 'center'});
+    doc.setFontSize(10);
+    doc.text('Detalle de Registro #' + r.id + '  |  ' + (r.fecha || '-') + ' ' + (r.hora || '-'), 105, 22, {align: 'center'});
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(9);
+    doc.text('Generado: ' + new Date().toLocaleString('es-ES'), 14, 36);
+
+    const campos = [
+        ['Fecha', r.fecha || '-'],
+        ['Hora', r.hora || '-'],
+        ['Tipo de Movimiento', r.tipo || '-'],
+        ['Placa', r.sinPlaca === 'SI' ? 'SIN PLACA' : (r.placa || '-')],
+        ['Segunda Placa', r.segundaPlaca === 'SI' ? (r.placa2 || '-') : 'NO APLICA'],
+        ['Tipo de Vehículo', r.tipoVehiculo || '-'],
+        ['Conductor', r.conductor || '-'],
+        ['Empresa', r.empresa || '-'],
+        [r.tipo === 'INGRESO' ? 'Procedencia' : 'Destino', r.procedenciaDestino || '-'],
+        ['¿Materiales?', r.materiales || '-'],
+        ['Descripción Materiales', r.descMateriales || '-'],
+        ['¿Precintos?', r.precintos || '-'],
+        ['¿Guía?', r.guia || '-'],
+        ['¿Acompañantes?', r.acompanantes || '-'],
+        ['Personas Acompañantes', r.personasAcompanantes || '-'],
+        ['Observaciones', r.observaciones || '-']
+    ];
+
+    const body = [];
+    campos.forEach(function(c) {
+        if (c[1] !== '-' && c[1] !== 'NO APLICA') {
+            body.push([c[0], c[1]]);
+        }
+    });
+
+    doc.autoTable({
+        startY: 42,
+        body: body,
+        styles: {fontSize: 10, cellPadding: 3},
+        columnStyles: {
+            0: {cellWidth: 60, fontStyle: 'bold', fillColor: [245, 245, 245]},
+            1: {cellWidth: 120}
+        },
+        theme: 'grid'
+    });
+
+    let y = doc.lastAutoTable.finalY + 10;
+
+    if (r.fotoPrecinto1 || r.fotoPrecinto2 || r.fotoGuia) {
+        doc.setFontSize(12);
+        doc.setTextColor(26, 35, 126);
+        doc.text('Fotos Adjuntas', 14, y);
+        doc.setTextColor(0, 0, 0);
+        y += 8;
+
+        if (r.fotoPrecinto1) {
+            try {
+                doc.addImage(r.fotoPrecinto1, 'JPEG', 14, y, 80, 50);
+                doc.setFontSize(8);
+                doc.text('Precinto 1', 14, y - 2);
+                y += 55;
+            } catch(e) {}
+        }
+        if (r.fotoPrecinto2) {
+            try {
+                if (y > 240) { doc.addPage(); y = 20; }
+                doc.addImage(r.fotoPrecinto2, 'JPEG', 14, y, 80, 50);
+                doc.setFontSize(8);
+                doc.text('Precinto 2', 14, y - 2);
+                y += 55;
+            } catch(e) {}
+        }
+        if (r.fotoGuia) {
+            try {
+                if (y > 240) { doc.addPage(); y = 20; }
+                const isPdf = r.fotoGuia.indexOf('data:application/pdf') >= 0;
+                if (!isPdf) {
+                    doc.addImage(r.fotoGuia, 'JPEG', 14, y, 80, 50);
+                    doc.setFontSize(8);
+                    doc.text('Guía', 14, y - 2);
+                } else {
+                    doc.setFontSize(10);
+                    doc.text('📄 Guía adjunta en PDF (ver en la aplicación)', 14, y);
+                }
+            } catch(e) {}
+        }
+    }
+
+    const pageCount = doc.internal.getNumberOfPages();
+    for (var i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(7);
+        doc.setTextColor(150);
+        doc.text('Página ' + i + ' de ' + pageCount, 105, doc.internal.pageSize.height - 8, {align: 'center'});
+        doc.text('Edward Quezada M. — Seguridad Patrimonial', 14, doc.internal.pageSize.height - 8);
+    }
+
+    const nombre = 'Registro_Detalle_' + (r.sinPlaca === 'SI' ? 'SIN_PLACA' : (r.placa || 'SIN_PLACA')) + '_' + r.fecha + '.pdf';
+    doc.save(nombre);
+    mostrarToast('📄 PDF generado: ' + nombre);
+}
+
+/* ==========================================================================
+   INTEGRACIÓN GOOGLE: Login + Google Sheets
+   Usamos el flujo de "redirect" directo al endpoint de OAuth de Google
+   (sin depender del script accounts.google.com/gsi/client, que algunos
+   WebViews empaquetados como Median bloquean silenciosamente). El login
+   se abre como navegación normal, que Median enruta a Chrome externo
+   por la regla de Link Handling, y Google redirige de vuelta a esta
+   misma página con el token en el fragmento de la URL (#access_token=...).
+   ========================================================================== */
+const GOOGLE_CLIENT_ID = '148773091561-105dahekfks72ci0n255i62kdav3hhq3.apps.googleusercontent.com';
+const GOOGLE_SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile';
+const SHEET_NAME = 'Registro Vehicular - Datos';
+// El redirect_uri debe ser EXACTAMENTE esta misma página, y su origen debe
+// estar registrado en "Orígenes autorizados de JavaScript" en Google Cloud.
+const GOOGLE_REDIRECT_URI = window.location.origin + window.location.pathname;
+
+let googleAccessToken = null;
+let hojaCalculoId = null; // se guarda en IndexedDB (config) una vez creada
+const SHEET_HEADERS = ['ID','Fecha','Hora','Tipo','SinPlaca','Placa','TienePlaca2','Placa2','TipoVehiculo','Conductor','Empresa','ProcedenciaDestino','Materiales','DescMateriales','Precintos','Guia','Acompanantes','PersonasAcompanantes','Observaciones','Timestamp'];
+const GAPI_SHEETS_BASE = 'https://sheets.googleapis.com/v4/spreadsheets';
+
+// --- Inicia sesión navegando directamente al endpoint de Google (no usa gapi/GIS) ---
+function iniciarLoginGoogle() {
+    mostrarToast('⏳ Abriendo Google...');
+    const params = new URLSearchParams({
+        client_id: GOOGLE_CLIENT_ID,
+        redirect_uri: GOOGLE_REDIRECT_URI,
+        response_type: 'token',
+        scope: GOOGLE_SCOPES,
+        include_granted_scopes: 'true',
+        prompt: 'consent',
+        state: 'login_registro_vehicular'
+    });
+    window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + params.toString();
+}
+
+// --- Al cargar la página, revisa si venimos de vuelta de Google con un token en el fragmento ---
+async function procesarRetornoDeGoogle() {
+    if (!window.location.hash || window.location.hash.indexOf('access_token=') === -1) return false;
+    const frag = new URLSearchParams(window.location.hash.substring(1));
+    const token = frag.get('access_token');
+    const state = frag.get('state');
+    if (!token || state !== 'login_registro_vehicular') return false;
+
+    // Limpiar el fragmento de la URL para no dejar el token visible ni reprocesarlo al recargar
+    history.replaceState(null, '', window.location.pathname + window.location.search);
+
+    googleAccessToken = token;
+    await obtenerPerfilGoogle();
+    await asegurarHojaCalculo();
+    await sincronizarTodoAHoja();
+    await guardarConfigGoogle('sesionGoogleActiva', true);
+    mostrarToast('✅ Conectado con Google Sheets');
+    mostrarBannerVolverALaApp();
+    return true;
+}
+
+// --- Banner grande e insistente indicando al usuario cómo volver a la app tras el login ---
+function mostrarBannerVolverALaApp() {
+    if (document.getElementById('bannerVolverApp')) return;
+    const banner = document.createElement('div');
+    banner.id = 'bannerVolverApp';
+    banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:#1a237e;color:#fff;padding:18px 16px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,0.3);font-size:15px;line-height:1.4;';
+    banner.innerHTML =
+        '<div style="font-weight:700;margin-bottom:6px;">✅ Conectado correctamente</div>' +
+        '<div>Toca la <strong>✕</strong> o la <strong>flecha ⌄</strong> arriba de la pantalla para volver a la app</div>' +
+        '<button onclick="document.getElementById(\'bannerVolverApp\').remove()" style="margin-top:10px;background:#fff;color:#1a237e;border:none;border-radius:6px;padding:8px 18px;font-weight:600;">Entendido</button>';
+    document.body.appendChild(banner);
+}
+
+// --- Al abrir la app, si hubo sesión antes, intenta reconectar en silencio (sin mostrar pantalla) ---
+async function intentarReconexionAutomatica() {
+    try {
+        // si acabamos de volver de Google con un token nuevo, procesarlo
+        const vinoDeGoogle = await procesarRetornoDeGoogle();
+        if (vinoDeGoogle) return;
+
+        // NOTA: la reconexión silenciosa automática (prompt=none) está desactivada
+        // temporalmente. En el WebView de Median, esa navegación también sale al
+        // navegador externo y no siempre regresa sola a la app, lo que causaría el
+        // mismo problema en CADA apertura de la app sin que el usuario lo pida.
+        // Por ahora, si hay sesión guardada, solo lo indicamos para que el usuario
+        // toque "Iniciar sesión con Google" manualmente cuando lo necesite.
+        const activa = await leerConfigGoogle('sesionGoogleActiva');
+        // Si había sesión antes, el usuario deberá tocar "Iniciar sesión con Google"
+        // de nuevo cuando la necesite (el token dura ~1 hora). Sin acción automática
+        // por ahora para evitar salir al navegador externo en cada apertura de la app.
+    } catch (e) { /* silencioso */ }
+}
+
+async function obtenerPerfilGoogle() {
+    try {
+        const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: 'Bearer ' + googleAccessToken }
+        });
+        const perfil = await r.json();
+        document.getElementById('btnGoogleLogin').style.display = 'none';
+        const info = document.getElementById('googleUserInfo');
+        info.style.display = 'flex';
+        document.getElementById('googleUserName').textContent = perfil.name || perfil.email || 'Conectado';
+        if (perfil.picture) document.getElementById('googleUserPhoto').src = perfil.picture;
+        await guardarConfigGoogle('googleUserEmail', perfil.email || '');
+    } catch (e) { console.error(e); }
+}
+
+function cerrarSesionGoogle() {
+    if (googleAccessToken) {
+        // Revocar el token vía REST (no dependemos del script GIS)
+        fetch('https://oauth2.googleapis.com/revoke?token=' + googleAccessToken, { method: 'POST' }).catch(function(){});
+    }
+    googleAccessToken = null;
+    hojaCalculoId = null;
+    guardarConfigGoogle('sesionGoogleActiva', false).catch(function(){});
+    document.getElementById('btnGoogleLogin').style.display = 'flex';
+    document.getElementById('googleUserInfo').style.display = 'none';
+    mostrarToast('Sesión de Google cerrada');
+}
+
+// --- Config persistida en el store 'config' de IndexedDB (mismo que usa la app) ---
+function guardarConfigGoogle(key, value) {
+    return new Promise(function(resolve, reject) {
+        const tx = db.transaction(['config'], 'readwrite');
+        tx.objectStore('config').put({ key: key, value: value });
+        tx.oncomplete = function() { resolve(); };
+        tx.onerror = function() { reject(tx.error); };
+    });
+}
+function leerConfigGoogle(key) {
+    return new Promise(function(resolve, reject) {
+        const tx = db.transaction(['config'], 'readonly');
+        const req = tx.objectStore('config').get(key);
+        req.onsuccess = function() { resolve(req.result ? req.result.value : null); };
+        req.onerror = function() { reject(req.error); };
+    });
+}
+
+// --- Helper: llamada autenticada a la API REST de Google Sheets (sin usar gapi) ---
+async function sheetsFetch(path, options) {
+    options = options || {};
+    const headers = Object.assign({
+        'Authorization': 'Bearer ' + googleAccessToken,
+        'Content-Type': 'application/json'
+    }, options.headers || {});
+    const r = await fetch(GAPI_SHEETS_BASE + path, {
+        method: options.method || 'GET',
+        headers: headers,
+        body: options.body ? JSON.stringify(options.body) : undefined
+    });
+    if (!r.ok) {
+        const texto = await r.text().catch(function(){ return ''; });
+        throw new Error('Sheets API ' + r.status + ': ' + texto);
+    }
+    return r.json();
+}
+
+// --- Crea la hoja de cálculo si no existe, o reutiliza el ID guardado ---
+async function asegurarHojaCalculo() {
+    const idGuardado = await leerConfigGoogle('hojaCalculoId');
+    if (idGuardado) {
+        try {
+            await sheetsFetch('/' + idGuardado);
+            hojaCalculoId = idGuardado;
+            return hojaCalculoId;
+        } catch (e) {
+            // la hoja guardada ya no existe o no es accesible; se creará una nueva
+        }
+    }
+    const resp = await sheetsFetch('', {
+        method: 'POST',
+        body: {
+            properties: { title: SHEET_NAME },
+            sheets: [{ properties: { title: 'Registros' } }]
+        }
+    });
+    hojaCalculoId = resp.spreadsheetId;
+    await sheetsFetch('/' + hojaCalculoId + '/values/Registros!A1?valueInputOption=RAW', {
+        method: 'PUT',
+        body: { values: [SHEET_HEADERS] }
+    });
+    await guardarConfigGoogle('hojaCalculoId', hojaCalculoId);
+    return hojaCalculoId;
+}
+
+function filaDesdeRegistro(r) {
+    return [
+        r.id || '', r.fecha || '', r.hora || '', r.tipo || '', r.sinPlaca || '',
+        r.placa || '', r.segundaPlaca || '', r.placa2 || '', r.tipoVehiculo || '',
+        r.conductor || '', r.empresa || '', r.procedenciaDestino || '',
+        r.materiales || '', r.descMateriales || '', r.precintos || '', r.guia || '',
+        r.acompanantes || '', r.personasAcompanantes || '', r.observaciones || '',
+        r.timestamp || ''
+    ];
+}
+
+// --- Sube o actualiza UN registro en la hoja (buscando por ID en la columna A) ---
+async function sincronizarRegistroAHoja(registro) {
+    if (!googleAccessToken || !hojaCalculoId) return; // no conectado: no hace nada
+    try {
+        setEstadoSync('sync');
+        const lectura = await sheetsFetch('/' + hojaCalculoId + '/values/Registros!A:A');
+        const columnaA = (lectura.values || []).map(function(f){ return String(f[0]); });
+        const fila = filaDesdeRegistro(registro);
+        const idxExistente = columnaA.indexOf(String(registro.id));
+
+        if (idxExistente > 0) { // existe (idx 0 es el header)
+            const numFila = idxExistente + 1;
+            await sheetsFetch('/' + hojaCalculoId + '/values/Registros!A' + numFila + '?valueInputOption=RAW', {
+                method: 'PUT',
+                body: { values: [fila] }
+            });
+        } else {
+            await sheetsFetch('/' + hojaCalculoId + '/values/Registros!A:T:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS', {
+                method: 'POST',
+                body: { values: [fila] }
+            });
+        }
+        setEstadoSync('ok');
+    } catch (e) {
+        console.error('Error sincronizando con Sheets:', e);
+        setEstadoSync('error');
+        mostrarToast('⚠️ No se pudo sincronizar con Google Sheets (se guardó localmente)');
+    }
+}
+
+// --- Sube TODOS los registros locales existentes (usado al conectar por primera vez) ---
+async function sincronizarTodoAHoja() {
+    if (!googleAccessToken || !hojaCalculoId) return;
+    try {
+        setEstadoSync('sync');
+        const registros = await obtenerRegistros();
+        if (!registros.length) { setEstadoSync('ok'); return; }
+        const filas = registros
+            .slice()
+            .sort(function(a,b){ return a.id - b.id; })
+            .map(filaDesdeRegistro);
+        await sheetsFetch('/' + hojaCalculoId + '/values/Registros!A2?valueInputOption=RAW', {
+            method: 'PUT',
+            body: { values: filas }
+        });
+        setEstadoSync('ok');
+    } catch (e) {
+        console.error('Error en sincronización completa:', e);
+        setEstadoSync('error');
+    }
+}
+
+function setEstadoSync(estado) {
+    const el = document.getElementById('syncStatus');
+    if (!el) return;
+    if (estado === 'sync') { el.textContent = '⏳'; el.title = 'Sincronizando...'; }
+    else if (estado === 'ok') { el.textContent = '☁️✅'; el.title = 'Sincronizado con Google Sheets'; }
+    else { el.textContent = '⚠️'; el.title = 'Error al sincronizar'; }
+}
+</script>
+</body>
+</html>
